@@ -426,18 +426,20 @@ HTML = """
         var videoId = extractYouTubeId(url);
         if (!videoId) return;
 
-        var modalContainer = document.getElementById("modalVideoContainer");
-        var titleEscaped = escapeHtml(title);
-        var html = '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div>';
-        html += '<div class="modal-title">' + titleEscaped + '</div>';
-        html += '<div class="modal-description">Clique no botao X para fechar o video.</div>';
+        var html = '<div class="video-container-mini"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div>';
+        var container = document.getElementById("modalVideoContainer");
+        container.innerHTML = '<div class="modal-mini-header"><span>Video Storopack</span><div class="modal-mini-buttons"><button class="modal-mini-btn" onclick="toggleMaximizeVideo()">⛶</button><button class="modal-mini-btn" onclick="closeVideoModal()">X</button></div></div><div class="modal-mini-body">' + html + '</div>';
         
-        modalContainer.innerHTML = html;
         document.getElementById("videoModal").classList.add("active");
     }
 
+    function toggleMaximizeVideo() {
+        var modal = document.getElementById("videoModal");
+        modal.classList.toggle("maximized");
+    }
+
     function closeVideoModal() {
-        document.getElementById("videoModal").classList.remove("active");
+        document.getElementById("videoModal").classList.remove("active", "maximized");
     }
 
     function linkify(text) {
@@ -477,12 +479,40 @@ HTML = """
                 var data = JSON.parse(xhr.responseText);
                 var resposta = data.resposta || "Desculpe, ocorreu um erro.";
 
+                var processedText = linkify(escapeHtml(resposta));
+
                 var divBot = document.createElement("div");
                 divBot.className = "msg-bot";
                 var spanBot = document.createElement("span");
-                spanBot.innerHTML = linkify(escapeHtml(resposta));
+                spanBot.innerHTML = processedText.text;
                 divBot.appendChild(spanBot);
                 chat.appendChild(divBot);
+
+                if (processedText.hasYouTube) {
+                    var divVideo = document.createElement("div");
+                    divVideo.className = "msg-bot";
+                    var spanVideo = document.createElement("span");
+                    
+                    var thumbnail = document.createElement("div");
+                    thumbnail.className = "video-thumbnail";
+                    thumbnail.onclick = function() {
+                        openVideoModal(processedText.youtubeUrl, 'Video Storopack');
+                    };
+                    
+                    var img = document.createElement("img");
+                    img.src = getYouTubeThumbnail(processedText.videoId);
+                    img.alt = "Video Storopack";
+                    
+                    var playBtn = document.createElement("div");
+                    playBtn.className = "video-play-btn";
+                    playBtn.textContent = "▶";
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(playBtn);
+                    spanVideo.appendChild(thumbnail);
+                    divVideo.appendChild(spanVideo);
+                    chat.appendChild(divVideo);
+                }
 
                 scrollChat();
             } else {
