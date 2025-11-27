@@ -39,63 +39,195 @@ VIDEOS_STOROPACK = {
     },
 }
 
-# ===================== EQUIPE STOROPACK =====================
+# ===================== EQUIPE / CONTATOS STOROPACK =====================
 
 EQUIPE_STOROPACK = {
-    "faturamento": {
-        "setor": "Faturamento e Apoio Comercial",
-        "responsavel": "Josiane",
-        "descricao": "Responsável pelo faturamento e suporte comercial"
-    },
     "financeiro": {
-        "setor": "Financeiro",
-        "responsaveis": ["Raquel", "Patricia"],
-        "descricao": "Responsáveis pela gestão financeira"
+        "setor": "Área Financeira",
+        "responsaveis": [
+            {
+                "nome": "Patricia Cardoso",
+                "cargo": "Gerente Financeiro",
+                "email": "patricia.cardoso@storopack.com",
+            },
+            {
+                "nome": "Raquel Pereira",
+                "cargo": "Assistente Financeiro",
+                "email": "raquel.pereira@storopack.com",
+            },
+        ],
+        "descricao": "Responsáveis por cobranças, boletos, notas fiscais e demais assuntos financeiros.",
     },
     "estoque": {
         "setor": "Estoque e Expedição",
-        "responsavel": "Luiz",
-        "descricao": "Responsável pelo estoque e expedição"
-    }
+        "responsaveis": [
+            {
+                "nome": "Luiz",
+                "cargo": "Responsável por Estoque e Expedição",
+                "email": None,  # pode ser preenchido depois
+            }
+        ],
+        "descricao": "Responsável pela separação, expedição e apoio em coletas.",
+    },
+    "diretoria": {
+        "setor": "Diretoria STOROpack Brasil",
+        "responsaveis": [
+            {
+                "nome": "Roni Rodrigues",
+                "cargo": "Diretor",
+                "email": "roni.rodrigues@storopack.com",
+            }
+        ],
+        "descricao": "Direção geral da STOROpack Brasil.",
+    },
+    "especialista_embalagens": {
+        "setor": "Consultoria em Embalagens, Processos e Vendas",
+        "responsaveis": [
+            {
+                "nome": "Danilo Domingos",
+                "cargo": "Especialista em Embalagens, Processos e Vendas",
+                "email": "danilo.domingos@storopack.com",
+            }
+        ],
+        "descricao": "Apoio em soluções de embalagem, processos e projetos comerciais.",
+    },
+    "supervisor_tecnico": {
+        "setor": "Suporte Técnico",
+        "responsaveis": [
+            {
+                "nome": "Felipe Teixeira",
+                "cargo": "Supervisor Técnico",
+                "email": "felipe.teixeira@storopack.com",
+            }
+        ],
+        "descricao": "Responsável por suporte técnico avançado e coordenação da equipe técnica.",
+    },
+    "telefone_geral": {
+        "numero": "(11) 5677-4699",
+        "descricao": "Telefone geral de contato da STOROpack Brasil.",
+    },
+}
+
+# ===================== LOGÍSTICA / COLETA =====================
+
+LOGISTICA_STOROPACK = {
+    "endereco_coleta": "R. Agostino Togneri, 457 - Jurubatuba, São Paulo - SP, 04690-090",
+    "horario_manha": "09:00 às 12:00",
+    "intervalo_almoco": "12:00 às 13:00",
+    "horario_tarde": "13:00 às 16:00",
+    "observacao": "Coletas precisam ser alinhadas previamente com o time de Estoque e Expedição (Luiz).",
+    "pallets": {
+        # Deixar em aberto para preenchimento posterior
+        "airplus": {
+            "void": None,     # exemplo futuro: {"peso_kg": ..., "qtd_bobinas": ..., "dimensoes": "..."}
+            "bubble": None,
+            "cushion": None,
+            "wrap": None,
+        },
+        "airmove_paperplus": {
+            "paperplus_classic": None,
+            "paperplus_track": None,
+            "paperplus_papillon": None,
+            "paperbubble": None,
+        },
+    },
 }
 
 # ===================== PROMPT DO ASSISTENTE =====================
 
 ASSISTANT_PROMPT = """
-Você é um assistente técnico da STOROpack Brasil. Ajude com equipamentos de proteção, 
-processos de embalagem e soluções de proteção de produtos.
+Você é o Assistente Oficial da STOROpack Brasil, focado em orientar clientes sobre:
+
+• Equipamentos: AIRplus (VOID, BUBBLE, CUSHION, WRAP), AIRmove, PAPERplus Classic, PAPERplus Track, PAPERplus Papillon, PAPERbubble, FOAMplus.
+• Materiais de proteção: travesseiros de ar, papel de proteção, espuma, filmes, soluções sustentáveis, etc.
+• Manutenção básica e operação dos equipamentos.
+• Processos de embalagem, cubagem, ergonomia e otimização de linhas.
+• Informações de logística, coleta e dúvidas gerais sobre setores e contatos internos.
+
+ÁREAS E CONTATOS INTERNOS (para referência):
+• Área Financeira:
+  - Patricia Cardoso – Gerente Financeiro – patricia.cardoso@storopack.com
+  - Raquel Pereira – Assistente Financeiro – raquel.pereira@storopack.com
+
+• Estoque e Expedição:
+  - Luiz – responsável por estoque e expedição.
+
+• Diretoria STOROpack Brasil:
+  - Roni Rodrigues – Diretor – roni.rodrigues@storopack.com
+
+• Especialista em Embalagens, Processos e Vendas:
+  - Danilo Domingos – danilo.domingos@storopack.com
+
+• Supervisor Técnico:
+  - Felipe Teixeira – Supervisor Técnico – felipe.teixeira@storopack.com
+
+• Contato geral da empresa:
+  - Telefone: (11) 5677-4699
+
+LOGÍSTICA / COLETA:
+• Endereço para coleta:
+  R. Agostino Togneri, 457 - Jurubatuba, São Paulo - SP, 04690-090
+• Horário de atendimento para coletas:
+  - Das 09:00 às 12:00
+  - Pausa para almoço: 12:00 às 13:00
+  - Das 13:00 às 16:00
+• Informar sempre que detalhes de peso, quantidade por pallet e dimensões podem variar por produto e devem ser confirmados com estoque/expedição (Luiz), caso o cliente precise de algo muito específico.
+
+ENVIO DE PEDIDOS:
+• Pedidos de compra devem ser alinhados diretamente com o vendedor responsável pela conta do cliente.
+
+MANUTENÇÃO – O QUE VOCÊ PODE ORIENTAR:
+Sempre que o cliente perguntar sobre operação ou suporte técnico, você pode ajudar com:
+1. Inicializar o equipamento.
+2. Troca de modelo de bobina / filme.
+3. Regulagem operacional de parâmetros:
+   - Selagem (temperatura / tempo)
+   - Enchimento (quantidade de ar)
+   - Velocidade
+   - Parada automática
+   - Tipos de menus.
+4. Troca de peças de reposição:
+   - Faca
+   - Correias
+   - Outros itens simples, desde que seja manutenção básica.
+5. Orientação sobre erros e códigos no display.
+6. Reforçar o uso de vídeos de suporte quando o procedimento for visual:
+   - Sempre que fizer sentido, diga que existe um vídeo curto mostrando o passo a passo.
+
+REGRA DE SEGURANÇA (OBRIGATÓRIA):
+• Antes de qualquer intervenção física, ajuste ou troca de peça, sempre escreva:
+  "Por segurança, desligue o equipamento da tomada antes de realizar qualquer intervenção."
+
+REGRAS PARA COMPARTILHAR CONTATOS:
+• SUPORTE TÉCNICO:
+  - Tente primeiro resolver orientando o passo a passo (explicação simples, numerada) e mencionando que há vídeos de apoio.
+  - Só compartilhe o contato do Supervisor Técnico (Felipe Teixeira) se:
+    a) o cliente insistir em falar com o técnico; ou
+    b) ficar claro que não é possível resolver por orientação remota (por exemplo, problema elétrico complexo, dano físico grave, equipamento não liga após checagens básicas).
+  - Ao liberar o contato, seja direto e profissional.
+
+• OUTRAS ÁREAS (financeiro, estoque/expedição, diretoria, especialista em embalagens):
+  - Você pode informar e-mail e telefone quando o cliente pedir ou quando for claramente o caminho correto (ex.: boletos, NF, coleta, negociação comercial, etc.).
+
+ESTILO DE COMUNICAÇÃO:
+• Responda em português do Brasil, com tom natural, profissional e próximo.
+• Seja dinâmico: faça perguntas curtas para entender melhor o problema e confirme sempre modelo do equipamento quando for suporte técnico.
+• Use respostas objetivas, mas não “secas”; pode usar listas numeradas ou bullets quando ajudar.
+• Pode usar 1 emoji discreto quando fizer sentido (por exemplo, 🙂) mas não exagere.
+• Quando for um procedimento, organize em passos:
+  1. ...
+  2. ...
+  3. ...
+• Não invente códigos de erro, especificações técnicas ou dados de pallet que não foram fornecidos.
+• Se não tiver certeza sobre algum dado específico (peso por pallet, quantidade exata, etc.), diga que precisa ser confirmado com o estoque/expedição e oriente a falar com Luiz.
 
 ESCOPO (responda apenas sobre):
-• Equipamentos STOROpack (AIRplus, PAPERplus, FOAMplus, AIRmove, PAPERbubble)
-• Materiais de proteção (papel, espuma, filmes, almofadas de ar)
-• Problemas técnicos, erros de máquina, ajustes e manutenção
-• Processos de embalagem, cubagem e otimizações
-• Aplicações e recomendações comerciais
-• Informações sobre setores e responsáveis da equipe STOROpack
+• Equipamentos e materiais STOROpack (AIRplus, PAPERplus, FOAMplus, AIRmove, PAPERbubble e correlatos).
+• Soluções de proteção, processos de embalagem, logística básica de coleta, manutenção simples e dúvidas comerciais.
 
-EQUIPE STOROPACK:
-• Faturamento e Apoio Comercial: Josiane
-• Financeiro: Raquel e Patricia
-• Estoque e Expedição: Luiz
-
-FORA DO ESCOPO (responda apenas isto):
-"Posso ajudar só em assuntos técnicos e comerciais da Storopack. Envie sua dúvida sobre 
-equipamentos, materiais ou processos de embalagem."
-
-INSTRUÇÕES:
-- Responda em português do Brasil, natural e conversacional
-- Seja direto e resumido. Máximo 3-4 linhas por resposta principal
-- Evite emojis, markdown excessivo ou formatações chamativas
-- Se precisar listar passos, use números simples (1. 2. 3.)
-- Se for orientar troca de peças, sempre avise: "Desligue o equipamento antes"
-- Ao mencionar responsáveis de setores, seja sempre profissional e neutro
-- Não invente códigos de erro ou especificações
-
-TRATAMENTO DE PROBLEMAS:
-- Pergunte detalhes sobre o problema (máquina, modelo, situação)
-- Ofereça soluções práticas e rápidas
-- Se for manutenção, sempre oriente sobre segurança primeiro
-- Se a dúvida envolver faturamento, financeiro ou estoque, informe o responsável adequado
+FORA DO ESCOPO:
+Se a pergunta não tiver relação com STOROpack, equipamentos de embalagem, materiais de proteção ou logística/coleta da STOROpack, responda APENAS:
+"Posso ajudar só em assuntos técnicos, logísticos e comerciais da STOROpack. Me envie sua dúvida sobre equipamentos, materiais, processos de embalagem ou logística de coleta."
 """
 
 # ===================== PALAVRAS-CHAVE OTIMIZADAS =====================
@@ -115,7 +247,7 @@ ALLOWED_KEYWORDS = [
     
     # Materiais e produtos de enchimento
     "travesseiro", "almofada", "almofadado", "air pillow", "air cushion",
-    "papel kraft", "papel proteção", "papel expandido", "papel cushion",
+    "papel kraft", "papel proteção", "papel proteg", "papel expandido", "papel cushion",
     "espuma", "foam", "poliuretano", "expandida",
     "filme", "filme plastico", "filme plástico", "filme reciclado", "filme compostavel",
     "void fill", "preenchimento", "amortecimento", "cushion",
@@ -215,7 +347,7 @@ ALLOWED_KEYWORDS = [
     "compostagem caseira", "compostável residencial", "compostavel residencial",
     "compostagem industrial", "industrial compostable", "compostável industrial",
     "compost", "compostage", "compostable at home", "compostable casa",
-    "biodegradavel", "biodegradável", "biodegradáveis", "biodegraداveis",
+    "biodegradavel", "biodegradável", "biodegradáveis",
     "biodecomposição", "biodecomposicao", "decomposição", "decomposicao",
     
     # Sustentabilidade - Certificações e Normas
@@ -288,6 +420,12 @@ ALLOWED_KEYWORDS = [
     "estoque", "expedição", "expedicao", "luiz",
     "equipe", "time", "responsável", "responsavel", "setor", "área", "area",
     "contato", "falar com", "quem cuida", "quem resolve",
+
+    # Logística / pallets / coleta
+    "pallet", "palete", "palet", "paleteira",
+    "coleta", "retirada", "agendamento de coleta",
+    "horário", "horario", "janela de coleta",
+    "jurubatuba", "agostino togneri",
 ]
 
 def _esta_no_escopo(pergunta: str) -> bool:
@@ -308,6 +446,7 @@ def _encontrar_videos_relevantes(pergunta: str) -> list:
         "paperbubble": "paperbubble",
         "storopack": "storopack",
         "plastico": "plasticos",
+        "plástico": "plasticos",
         "sustentabilidade": "plasticos",
         "processo": "processo",
     }
@@ -324,7 +463,7 @@ def _formatar_resposta(texto_ia: str, videos: list) -> str:
     resposta = texto_ia.strip()
     
     if videos:
-        resposta += "\n\nVocê pode ver mais em detalhes nestes vídeos:"
+        resposta += "\n\nVocê pode ver mais detalhes nestes vídeos de apoio:"
         for video in videos:
             resposta += f"\n• {video['titulo']}\n  {video['url']}"
     
@@ -337,16 +476,15 @@ def responder_cliente(pergunta: str) -> str:
     pergunta = pergunta.strip()
 
     if not pergunta:
-        return "Qual é sua dúvida ou problema sobre os equipamentos e materiais Storopack?"
+        return "Oi! Qual é a sua dúvida sobre os equipamentos, materiais ou logística da STOROpack?"
 
     if not _esta_no_escopo(pergunta):
         return (
-            "Posso ajudar só em assuntos técnicos e comerciais da Storopack. "
-            "Envie sua dúvida sobre equipamentos, materiais ou processos de embalagem."
+            "Posso ajudar só em assuntos técnicos, logísticos e comerciais da STOROpack. "
+            "Me envie sua dúvida sobre equipamentos, materiais, processos de embalagem ou logística de coleta."
         )
 
     try:
-        # Chamada correta para a API do OpenAI
         resposta = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -371,7 +509,6 @@ def responder_cliente(pergunta: str) -> str:
 # ===================== EXEMPLO DE USO =====================
 
 if __name__ == "__main__":
-    # Teste básico
-    print(responder_cliente("Quem é responsável pelo faturamento?"))
+    print(responder_cliente("Quem é responsável pelo financeiro?"))
     print("\n" + "="*50 + "\n")
-    print(responder_cliente("Preciso falar com alguém do financeiro"))
+    print(responder_cliente("Estou com erro E1 no AIRplus, como inicializo a máquina e ajusto selagem?"))
