@@ -39,7 +39,7 @@ HTML = """
             display: flex;
             align-items: stretch;
             justify-content: center;
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #0a1929 0%, #0d2a47 50%, #061e3e 100%);
             color: var(--sp-text-dark);
         }
 
@@ -103,16 +103,16 @@ HTML = """
 
         .card {
             margin-top: 4px;
-            background: var(--sp-text-light);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 12px;
             display: grid;
             grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
             gap: 40px;
             padding: 40px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
-            border: 1px solid #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             z-index: 1;
         }
 
@@ -133,7 +133,7 @@ HTML = """
         }
 
         h1 { margin: 0; font-size: 24px; font-weight: 700; color: var(--sp-primary); }
-        .subtitle { margin-top: 6px; margin-bottom: 10px; color: #666; font-size: 14px; }
+        .subtitle { margin-top: 6px; margin-bottom: 10px; color: #555; font-size: 14px; }
         .hint { font-size: 13px; color: #0066cc; margin-bottom: 14px; background: #f0f7ff; padding: 12px; border-radius: 6px; border-left: 4px solid #0066cc; }
         .hint strong { color: #0066cc; }
 
@@ -152,10 +152,10 @@ HTML = """
         }
 
         .msg-user span {
-            background: var(--sp-primary);
+            background: linear-gradient(to right, #0ea5e9, #22c55e);
             color: white;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 15px rgba(14, 165, 233, 0.5);
         }
         
         .msg-bot span {
