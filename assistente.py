@@ -7,6 +7,39 @@ load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# ===================== BIBLIOTECA DE VÍDEOS =====================
+
+VIDEOS_STOROPACK = {
+    "airplus": {
+        "titulo": "AIRplus - Travesseiro de Ar",
+        "url": "https://www.youtube.com/watch?v=IbG1o-UbrtI&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=8&t=4s&pp=iAQB",
+    },
+    "paperplus": {
+        "titulo": "PAPERplus - Papel de Proteção",
+        "url": "https://www.youtube.com/watch?v=a8iCa46yRu4&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=7&pp=iAQB",
+    },
+    "foamplus": {
+        "titulo": "FOAMplus - Espuma Expandida",
+        "url": "https://www.youtube.com/watch?v=bhVK8KCJihs&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=11&t=2s&pp=iAQB",
+    },
+    "paperbubble": {
+        "titulo": "PAPERbubble - Papel Almofadado",
+        "url": "https://www.youtube.com/watch?v=TQYRcHj_v0E&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=3&pp=iAQB",
+    },
+    "storopack": {
+        "titulo": "Visão Geral STOROpack",
+        "url": "https://www.youtube.com/watch?v=wa4ZO1Z3g2Q&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=5&pp=iAQB",
+    },
+    "plasticos": {
+        "titulo": "Plásticos - Filmes de Proteção",
+        "url": "https://www.youtube.com/watch?v=suKamjQtuGI&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=4&pp=iAQB",
+    },
+    "processo": {
+        "titulo": "Processo de Embalagens STOROpack",
+        "url": "https://www.youtube.com/watch?v=Vq1Wt_mUWQs&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=6&pp=iAQB",
+    },
+}
+
 # ===================== PROMPT DO ASSISTENTE =====================
 
 ASSISTANT_PROMPT = """
@@ -122,12 +155,27 @@ ALLOWED_KEYWORDS = [
     "proteger", "absorção", "impacto", "quebra", "danos",
     "fragil", "produto frágil", "amortecimento", "envelope",
     "preenchimento de caixas", "preencher lacunas",
+    
+    # Vídeos
+    "vídeo", "video", "como usar", "tutorial", "aprenda",
 ]
 
 def _esta_no_escopo(pergunta: str) -> bool:
     """Retorna True se a pergunta parece estar ligada a Storopack/embalagens."""
     lower = pergunta.lower()
     return any(palavra in lower for palavra in ALLOWED_KEYWORDS)
+
+
+def _encontrar_videos_relevantes(pergunta: str) -> list:
+    """Busca vídeos relevantes baseado na pergunta."""
+    lower = pergunta.lower()
+    videos_encontrados = []
+    
+    for chave, video in VIDEOS_STOROPACK.items():
+        if chave in lower:
+            videos_encontrados.append(video)
+    
+    return videos_encontrados
 
 
 # ===================== FUNÇÃO PRINCIPAL =====================
@@ -165,7 +213,17 @@ def responder_cliente(pergunta: str) -> str:
             tools=tools or None,
         )
 
-        return resposta.output_text
+        resposta_texto = resposta.output_text
+        
+        # 📹 Busca vídeos relevantes e adiciona à resposta
+        videos = _encontrar_videos_relevantes(pergunta)
+        
+        if videos:
+            resposta_texto += "\n\n📹 **Vídeos Recomendados:**\n"
+            for video in videos:
+                resposta_texto += f"• {video['titulo']}: {video['url']}\n"
+
+        return resposta_texto
 
     except RateLimitError:
         return (
