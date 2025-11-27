@@ -75,64 +75,186 @@ TRATAMENTO DE PROBLEMAS:
 
 ALLOWED_KEYWORDS = [
     # Marca e variações
-    "storopack", "storo", "storo pack", "storo-pack",
-
+    "storopack", "storo", "storo pack", "storo-pack", "storopak", "storopac",
+    
     # Produtos principais
     "airplus", "air plus", "airplus bubble", "airplus cushion", "airplus void",
+    "air-plus", "airplusminibubble", "air plus mini", "airplus mini bubble",
     "paperplus", "paper plus", "papillon", "classic",
-    "foamplus", "foam plus", "bagpacker", "handpacker",
-    "airmove", "airmove2", "airmove²", "airmove¹", "air move",
-    "paperbubble", "paper bubble", "pillowpack",
-
-    # Materiais
+    "foamplus", "foam plus", "bagpacker", "handpacker", "bag packer", "hand packer",
+    "airmove", "airmove2", "airmove²", "airmove¹", "air move", "air move 2",
+    "paperbubble", "paper bubble", "pillowpack", "pillow pack",
+    "flobag", "flo bag", "renofill", "reno fill",
+    
+    # Materiais e produtos de enchimento
     "travesseiro", "almofada", "almofadado", "air pillow", "air cushion",
     "papel kraft", "papel proteção", "papel expandido", "papel cushion",
     "espuma", "foam", "poliuretano", "expandida",
     "filme", "filme plastico", "filme plástico", "filme reciclado", "filme compostavel",
     "void fill", "preenchimento", "amortecimento", "cushion",
-
-    # Problemas comuns
-    "erro", "error", "code", "codigo", "alarme", "alerta", "avaria", "defeito",
+    "bolha", "bubble", "bubble wrap", "plástico bolha", "plastico bolha",
+    "saco", "sacola", "embalagem", "envelope",
+    
+    # Problemas com saquinhos/almofadas
+    "saquinho", "saquinho murcho", "saquinho vazio", "saquinho furado",
+    "saquinho nao enche", "saquinho não enche", "saquinho mole", "saquinho fraco",
+    "murcho", "murcha", "murchos", "murchas", "vazio", "vazios", "vazia", "vazias",
+    "nao sela", "não sela", "nao solda", "não solda", "sem solda", "sem selagem",
+    "nao enche", "não enche", "nao infla", "não infla", "não preenche", "nao preenche",
+    "esvaziando", "esvazia", "perde ar", "vazando ar", "fura", "furado", "furada",
+    "desinflando", "desinfla", "sem ar", "pouco ar", "ar fraco", "inflação fraca",
+    "enchimento ruim", "enchimento fraco", "mal selado", "selagem fraca",
+    "bolha murcha", "bolha vazia", "bolha furada", "almofada murcha", "almofada vazia",
+    "travesseiro murcho", "travesseiro vazio", "travesseiro furado",
+    "cushion vazio", "cushion murcho", "void fill vazio", "void fill murcho",
+    "nao protege", "não protege", "proteção ruim", "proteção fraca",
+    
+    # Problemas de selagem e soldagem
+    "selo aberto", "selo frouxo", "selo fraco", "não fecha", "nao fecha",
+    "abertura", "vazamento na solda", "solda ruim", "mal soldado", "sem vedação",
+    "nao veda", "não veda", "vedação ruim", "vedação fraca",
+    
+    # Problemas de qualidade do produto
+    "quebrado", "quebrada", "danificado", "danificada", "defeituoso", "defeituosa",
+    "ruim", "qualidade ruim", "produto ruim", "material ruim", "filme ruim",
+    "rasgado", "rasgada", "perfurado", "perfurada", "cortado", "cortada",
+    "fino demais", "grosso demais", "espesso", "resistência baixa", "resistencia baixa",
+    "fragil demais", "frágil demais", "estoura fácil", "estoura facil",
+    
+    # Problemas gerais de funcionamento
+    "erro", "error", "code", "codigo", "código", "alarme", "alerta", "avaria", "defeito",
     "travado", "preso", "desalinhado", "desalinha", "entupido", "entupimento",
     "vazamento", "ar", "pressão", "pressao", "fraco", "nao funciona", "não funciona",
     "quebrou", "queimou", "nao liga", "não liga", "faz barulho", "ruido", "ruído",
-    "pulsa", "falha", "intermitente", "parou", "trava",
-
+    "pulsa", "falha", "intermitente", "parou", "trava", "emperrado", "emperrou",
+    "nao sai", "não sai", "nao produz", "não produz", "parou de funcionar",
+    
     # Erros específicos (E-xx)
     "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9",
     "e10", "e11", "e12", "e13", "e14", "e15", "e20", "e25", "e30",
-    "erro e", "erro 1", "erro 2", "código de erro", "codigo de erro",
-
-    # Componentes e manutenção
+    "e-1", "e-2", "e-3", "e-4", "e-5", "e-10", "e-20",
+    "erro e", "erro 1", "erro 2", "erro 3", "código de erro", "codigo de erro",
+    "error code", "error e", "fault", "alarm",
+    
+    # Componentes e peças
     "sensor", "lâmina", "lamina", "rolo", "bobina", "teflon", "tubo", "mangueira",
     "válvula", "valvula", "motor", "fusivel", "fusível", "varistor",
     "injetor", "injector", "sealing", "selo", "heat seal", "selagem",
     "tensão", "tensao", "ajuste", "aperto", "parafuso", "porca",
     "óleo", "oleo", "lubrificante", "limpeza", "pó", "po", "poeira",
-
+    "faca", "guilhotina", "cortador", "tesoura", "bico", "bocal",
+    "resistência", "resistencia", "aquecedor", "termostato",
+    "correia", "esteira", "guia", "trilho", "eixo",
+    
     # Manutenção e cuidados
-    "manutencao", "manutenção", "troca de peça", "substituição", "reparo",
-    "conserto", "ajuste", "regulagem", "limpeza", "inspeção", "inspecao",
-
-    # Processos
+    "manutencao", "manutenção", "troca de peça", "troca de peca", "substituição", "substituicao",
+    "reparo", "conserto", "ajuste", "regulagem", "calibração", "calibracao",
+    "limpeza", "inspeção", "inspecao", "revisão", "revisao",
+    "preventiva", "corretiva", "técnico", "tecnico", "assistência", "assistencia",
+    
+    # Processos e operações
     "embalagem", "embalar", "acondicionamento", "proteção", "protecao", "proteger",
     "expedição", "expedicao", "envio", "transporte", "logistica", "logística",
     "packing", "fulfillment", "cubagem", "armazém", "armazem", "estoque",
-    "linha", "bancada", "bench", "bench de embalagem",
-
+    "linha", "bancada", "bench", "bench de embalagem", "estação", "estacao",
+    "separação", "separacao", "picking", "conferência", "conferencia",
+    
+    # Problemas operacionais
+    "lento", "devagar", "velocidade baixa", "produção baixa", "producao baixa",
+    "travando muito", "parando muito", "interrompendo", "atrasando",
+    "desperdício", "desperdicio", "gasto alto", "consumo alto", "perda",
+    
     # Qualidade e otimização
     "qualidade", "quebra", "dano", "danificado", "fragil", "frágil", "impacto",
     "otimizar", "reduzir", "diminuir", "melhorar", "eficiência", "eficiencia",
     "produtividade", "velocidade", "ergonomia", "economia",
-
-    # Sustentabilidade
-    "reciclado", "reciclado 30%", "biodegradavel", "biodegradável", "compostavel", "compostável",
-    "sustentável", "sustentavel", "eco", "ecológico", "ecologico",
-
-    # Genéricos relacionados
-    "como usar", "como funciona", "de que serve", "qual a diferença", "recomenda",
+    "rendimento", "performance", "desempenho",
+    
+    # Sustentabilidade - Materiais Reciclados
+    "reciclado", "reciclável", "reciclavel", "reciclados", "recicláveis", "reciclaveis",
+    "reciclado 30%", "reciclado 30", "30% reciclado", "30 reciclado",
+    "reciclado 50%", "reciclado 50", "50% reciclado", "50 reciclado",
+    "reciclado 100%", "reciclado 100", "100% reciclado", "100 reciclado",
+    "30%", "50%", "100%", "trinta por cento", "cinquenta por cento", "cem por cento",
+    "material reciclado", "conteúdo reciclado", "conteudo reciclado",
+    "parcialmente reciclado", "totalmente reciclado", "100% reciclável",
+    "pcr", "pir", "post consumer", "post-consumer", "pós-consumo", "pos-consumo",
+    "post industrial", "post-industrial", "pós-industrial", "pos-industrial",
+    
+    # Sustentabilidade - Compostável
+    "compostavel", "compostável", "compostaveis", "compostáveis",
+    "compostagem", "compostável em casa", "compostavel em casa",
+    "home compostable", "home compost", "compostagem doméstica", "compostagem domestica",
+    "compostagem caseira", "compostável residencial", "compostavel residencial",
+    "compostagem industrial", "industrial compostable", "compostável industrial",
+    "compost", "compostage", "compostable at home", "compostable casa",
+    "biodegradavel", "biodegradável", "biodegradáveis", "biodegraداveis",
+    "biodecomposição", "biodecomposicao", "decomposição", "decomposicao",
+    
+    # Sustentabilidade - Certificações e Normas
+    "certificado", "certificação", "certificacao", "norma", "padrão", "padrao",
+    "astm d6400", "en 13432", "iso 14855", "din certco", "seedling",
+    "ok compost", "ok compost home", "tuv austria", "bpi certified",
+    "certificação ambiental", "certificacao ambiental", "selo verde",
+    
+    # Sustentabilidade - Termos Gerais
+    "sustentável", "sustentavel", "sustentáveis", "sustentaveis",
+    "eco", "ecológico", "ecologico", "ecológicos", "ecologicos",
+    "verde", "green", "amigável ao meio ambiente", "amigavel ao meio ambiente",
+    "eco-friendly", "eco friendly", "ecofriendly", "ambientalmente correto",
+    "baixo impacto", "impacto zero", "zero waste", "lixo zero",
+    "circular", "economia circular", "circularidade",
+    "renovável", "renovavel", "renováveis", "renovaveis",
+    "carbono neutro", "neutro em carbono", "carbon neutral",
+    "pegada de carbono", "emissão zero", "emissao zero",
+    
+    # Sustentabilidade - Descarte e Reciclagem
+    "descarte", "descartar", "descartável", "descartavel",
+    "reciclagem", "reciclar", "reutilizável", "reutilizavel",
+    "reutilizar", "reusar", "reuso", "reaproveitamento",
+    "destinação", "destinacao", "destino final", "fim de vida",
+    "ciclo de vida", "lifecycle", "life cycle",
+    
+    # Sustentabilidade - Alternativas
+    "alternativa sustentável", "alternativa sustentavel",
+    "substituir plastico", "substituir plástico", "sem plastico", "sem plástico",
+    "plastic free", "livre de plastico", "livre de plástico",
+    "isopor", "eps", "substituir isopor", "alternativa ao isopor",
+    "papel vs plastico", "papel vs plástico", "papel ou plastico",
+    
+    # Instalação e configuração
+    "instalação", "instalacao", "instalar", "configuração", "configuracao", "configurar",
+    "setup", "montagem", "montar", "conexão", "conexao", "conectar",
+    "elétrica", "eletrica", "voltagem", "tomada", "plugue", "cabo",
+    "compressor", "ar comprimido", "pressão de ar", "pressao de ar",
+    
+    # Treinamento e suporte
+    "como usar", "como funciona", "de que serve", "qual a diferença", "qual a diferenca",
+    "recomenda", "recomendação", "recomendacao", "indicação", "indicacao",
     "aplicação", "aplicacao", "uso", "tutorial", "video", "vídeo",
-    "manual", "especificação", "especificacao", "tabela", "preço", "preco",
+    "manual", "especificação", "especificacao", "ficha técnica", "ficha tecnica",
+    "tabela", "preço", "preco", "custo", "valor",
+    "treinamento", "capacitação", "capacitacao", "curso",
+    
+    # Comparações e dúvidas
+    "diferença", "diferenca", "comparação", "comparacao", "versus", "vs",
+    "melhor", "pior", "vantagem", "desvantagem", "benefício", "beneficio",
+    "escolher", "decidir", "opção", "opcao", "alternativa",
+    
+    # Segurança
+    "segurança", "seguranca", "risco", "perigo", "cuidado", "atenção", "atencao",
+    "epi", "protetor", "luva", "óculos", "oculos",
+    
+    # Problemas de fornecimento/abastecimento
+    "acabou", "falta", "faltando", "sem material", "sem filme", "sem papel",
+    "reposição", "reposicao", "recarregar", "reabastecer", "trocar bobina",
+    "bobina acabou", "filme acabou", "rolo acabou",
+    
+    # Tipos de embalagem e aplicações
+    "e-commerce", "ecommerce", "varejo", "indústria", "industria",
+    "farmacêutica", "farmaceutica", "alimentício", "alimenticio", "cosmético", "cosmetico",
+    "eletrônico", "eletronico", "automotivo", "têxtil", "textil",
+    "vidro", "cerâmica", "ceramica", "peça delicada", "peca delicada",
 ]
 
 def _esta_no_escopo(pergunta: str) -> bool:
