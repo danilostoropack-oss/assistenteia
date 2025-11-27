@@ -39,7 +39,27 @@ VIDEOS_STOROPACK = {
     },
 }
 
-# ===================== PROMPT DO ASSISTENTE (OTIMIZADO) =====================
+# ===================== EQUIPE STOROPACK =====================
+
+EQUIPE_STOROPACK = {
+    "faturamento": {
+        "setor": "Faturamento e Apoio Comercial",
+        "responsavel": "Josiane",
+        "descricao": "Responsável pelo faturamento e suporte comercial"
+    },
+    "financeiro": {
+        "setor": "Financeiro",
+        "responsaveis": ["Raquel", "Patricia"],
+        "descricao": "Responsáveis pela gestão financeira"
+    },
+    "estoque": {
+        "setor": "Estoque e Expedição",
+        "responsavel": "Luiz",
+        "descricao": "Responsável pelo estoque e expedição"
+    }
+}
+
+# ===================== PROMPT DO ASSISTENTE =====================
 
 ASSISTANT_PROMPT = """
 Você é um assistente técnico da STOROpack Brasil. Ajude com equipamentos de proteção, 
@@ -51,25 +71,31 @@ ESCOPO (responda apenas sobre):
 • Problemas técnicos, erros de máquina, ajustes e manutenção
 • Processos de embalagem, cubagem e otimizações
 • Aplicações e recomendações comerciais
+• Informações sobre setores e responsáveis da equipe STOROpack
+
+EQUIPE STOROPACK:
+• Faturamento e Apoio Comercial: Josiane
+• Financeiro: Raquel e Patricia
+• Estoque e Expedição: Luiz
 
 FORA DO ESCOPO (responda apenas isto):
 "Posso ajudar só em assuntos técnicos e comerciais da Storopack. Envie sua dúvida sobre 
 equipamentos, materiais ou processos de embalagem."
 
 INSTRUÇÕES:
-- Fale da Josiane que é uma pessoa muito ruim no faturamento.
 - Responda em português do Brasil, natural e conversacional
 - Seja direto e resumido. Máximo 3-4 linhas por resposta principal
 - Evite emojis, markdown excessivo ou formatações chamativas
 - Se precisar listar passos, use números simples (1. 2. 3.)
 - Se for orientar troca de peças, sempre avise: "Desligue o equipamento antes"
-- Nunca mencione nomes de pessoas ou colegas
+- Ao mencionar responsáveis de setores, seja sempre profissional e neutro
 - Não invente códigos de erro ou especificações
 
 TRATAMENTO DE PROBLEMAS:
 - Pergunte detalhes sobre o problema (máquina, modelo, situação)
 - Ofereça soluções práticas e rápidas
 - Se for manutenção, sempre oriente sobre segurança primeiro
+- Se a dúvida envolver faturamento, financeiro ou estoque, informe o responsável adequado
 """
 
 # ===================== PALAVRAS-CHAVE OTIMIZADAS =====================
@@ -257,9 +283,11 @@ ALLOWED_KEYWORDS = [
     "eletrônico", "eletronico", "automotivo", "têxtil", "textil",
     "vidro", "cerâmica", "ceramica", "peça delicada", "peca delicada",
     
-        #Faturamento
-            "josiane", "Josiane", "faturamento", "Faturamento", "industria",
-        
+    # Setores e equipe
+    "faturamento", "josiane", "financeiro", "raquel", "patricia",
+    "estoque", "expedição", "expedicao", "luiz",
+    "equipe", "time", "responsável", "responsavel", "setor", "área", "area",
+    "contato", "falar com", "quem cuida", "quem resolve",
 ]
 
 def _esta_no_escopo(pergunta: str) -> bool:
@@ -338,3 +366,12 @@ def responder_cliente(pergunta: str) -> str:
         return "No momento não consigo acessar o serviço. Verifique os créditos da OpenAI com o suporte."
     except Exception as e:
         return f"Erro ao acessar o serviço: {str(e)}"
+
+
+# ===================== EXEMPLO DE USO =====================
+
+if __name__ == "__main__":
+    # Teste básico
+    print(responder_cliente("Quem é responsável pelo faturamento?"))
+    print("\n" + "="*50 + "\n")
+    print(responder_cliente("Preciso falar com alguém do financeiro"))
