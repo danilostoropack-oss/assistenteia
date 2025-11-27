@@ -20,7 +20,7 @@ HTML = r"""
     <style>
         :root {
             --sp-primary: #0066cc;
-            --sp-primary-dark: #004a99;
+            --sp-primary-dark: #003066;
             --sp-secondary: #00cccc;
             --sp-gray-dark: #1a1a1a;
             --sp-gray-medium: #333333;
@@ -56,7 +56,7 @@ HTML = r"""
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 1200px;
+            max-width: 960px;
             padding: 40px 24px;
             display: flex;
             flex-direction: column;
@@ -73,7 +73,10 @@ HTML = r"""
         }
 
         .header-left { display: flex; align-items: center; gap: 16px; }
-        .logo { height: 50px; border-radius: 6px; object-fit: contain; }
+
+        /* LOGO MAIOR */
+        .logo { height: 72px; border-radius: 6px; object-fit: contain; }
+
         .header-text-main { font-size: 18px; font-weight: 700; color: white; letter-spacing: 0.5px; }
         .header-text-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-top: 4px; }
 
@@ -126,12 +129,6 @@ HTML = r"""
             pointer-events: none;
         }
 
-        @media (max-width: 900px) {
-            .page-wrapper { padding: 16px; }
-            .card { grid-template-columns: 1fr; padding: 18px; }
-            .assistant-illustration { display: none; }
-        }
-
         h1 { margin: 0; font-size: 24px; font-weight: 700; color: var(--sp-primary); }
         .subtitle { margin-top: 6px; margin-bottom: 10px; color: #555; font-size: 14px; }
         .hint { font-size: 13px; color: #0066cc; margin-bottom: 14px; background: #f0f7ff; padding: 12px; border-radius: 6px; border-left: 4px solid #0066cc; }
@@ -143,7 +140,8 @@ HTML = r"""
             border-radius: 12px;
             background: #f8f9fa;
             padding: 12px;
-            height: 350px;
+            height: 60vh;  /* MAIS ALTURA PARA MOBILE / GERAL */
+            max-height: 500px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -163,8 +161,9 @@ HTML = r"""
             line-height: 1.35;
         }
         
+        /* DEGRADÊ AZUL → AZUL MARINHO */
         .msg-user span {
-            background: linear-gradient(to right, #0ea5e9, #22c55e);
+            background: linear-gradient(to right, #0ea5e9, #003066);
             color: white;
             border-bottom-right-radius: 4px;
             box-shadow: 0 8px 15px rgba(14, 165, 233, 0.5);
@@ -235,9 +234,10 @@ HTML = r"""
             text-align: center;
         }
         
+        /* IMAGEM DA MANUTENÇÃO MAIOR */
         .assistant-illustration img {
             width: 100%;
-            max-width: 300px;
+            max-width: 360px;
             border-radius: 12px;
             object-fit: cover;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -309,7 +309,6 @@ HTML = r"""
             align-items: center;
             justify-content: center;
             transition: 0.2s;
-            z-index: 1;
         }
 
         .modal-close:hover { background: #e0e0e0; }
@@ -377,6 +376,55 @@ HTML = r"""
             background: var(--sp-primary);
             transform: translate(-50%, -50%) scale(1.1);
         }
+
+        /* AJUSTES PARA MOBILE */
+        @media (max-width: 900px) {
+            .page-wrapper {
+                padding: 16px 12px 20px;
+                max-width: 100%;
+            }
+
+            .header-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .card {
+                grid-template-columns: 1fr;
+                padding: 18px 14px 20px;
+                gap: 24px;
+            }
+
+            #chat {
+                height: 55vh;
+                max-height: none;
+            }
+
+            form {
+                flex-direction: column;
+            }
+
+            #mensagem {
+                font-size: 15px;
+            }
+
+            button[type="submit"] {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .assistant-illustration img {
+                max-width: 260px; /* um pouco menor no mobile, mas ainda maior que antes */
+            }
+        }
     </style>
 </head>
 
@@ -407,12 +455,12 @@ HTML = r"""
         <div style="position: relative; z-index: 1;">
             <h1>Central de Suporte Storopack</h1>
             <p class="subtitle">Atendimento inteligente para duvidas tecnicas sobre equipamentos e solucoes de protecao.</p>
-            <p class="hint">Exemplo de pergunta: <strong>Minha AIRplus esta com erro E10, como posso resolver?</strong></p>
+            <p class="hint">Exemplo de pergunta: <strong>Minha AIRplus esta com erro E3, como posso resolver?</strong></p>
 
             <div class="chat-wrapper">
                 <div id="chat">
                     <div class="msg-bot">
-                        <span>Ola! Sou o assistente tecnico Storopack. Como posso te ajudar hoje?</span>
+                        <span>Ola! Sou o assistente tecnico da Storopack. Como posso te ajudar hoje?</span>
                     </div>
                 </div>
 
@@ -456,219 +504,4 @@ HTML = r"""
         return div.innerHTML;
     }
 
-    function scrollChat() {
-        chat.scrollTop = chat.scrollHeight;
-    }
-
-    function extractYouTubeId(url) {
-        var regex1 = /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/;
-        var regex2 = /youtu\.be\/([a-zA-Z0-9_-]{11})/;
-        var regex3 = /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/;
-        
-        var match = url.match(regex1);
-        if (match) return match[1];
-        match = url.match(regex2);
-        if (match) return match[1];
-        match = url.match(regex3);
-        if (match) return match[1];
-        return null;
-    }
-
-    function getYouTubeThumbnail(videoId) {
-        if (!videoId) return '';
-        return 'https://img.youtube.com/vi/' + videoId + '/hqdefault.jpg';
-    }
-
-    function openVideoModal(url, title) {
-        if (!url) return;
-        var videoId = extractYouTubeId(url);
-        if (!videoId) return;
-
-        var modalContainer = document.getElementById("modalVideoContainer");
-        var titleEscaped = escapeHtml(title || 'Video Storopack');
-        var html = '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div>';
-        html += '<div class="modal-title">' + titleEscaped + '</div>';
-        html += '<div class="modal-description">Clique no botao X para fechar.</div>';
-        
-        modalContainer.innerHTML = html;
-        document.getElementById("videoModal").classList.add("active");
-    }
-
-    function closeVideoModal() {
-        document.getElementById("videoModal").classList.remove("active");
-    }
-
-    function linkify(text) {
-        if (!text || typeof text !== 'string') {
-            return { text: '', youtubeUrl: '', hasYouTube: false, videoId: '' };
-        }
-
-        var urlRegex = /(https?:\/\/[^\s]+)/g;
-        var hasYouTube = false;
-        var youtubeUrl = '';
-        var videoId = '';
-        
-        var matches = text.match(urlRegex);
-        if (matches && matches.length > 0) {
-            for (var i = 0; i < matches.length; i++) {
-                var url = matches[i];
-                var isYouTube = url.indexOf("youtube.com") > -1 || url.indexOf("youtu.be") > -1;
-                if (isYouTube) {
-                    hasYouTube = true;
-                    youtubeUrl = url;
-                    videoId = extractYouTubeId(url);
-                    break;
-                }
-            }
-        }
-        
-        var result = text.replace(urlRegex, function(url) {
-            var isYouTube = url.indexOf("youtube.com") > -1 || url.indexOf("youtu.be") > -1;
-            if (isYouTube) {
-                return '';
-            }
-            return '<a href="' + url + '" target="_blank">' + url + '</a>';
-        });
-        
-        return { 
-            text: (result || '').trim(), 
-            youtubeUrl: youtubeUrl, 
-            hasYouTube: hasYouTube, 
-            videoId: videoId 
-        };
-    }
-
-    form.addEventListener("submit", function(e) {
-        e.preventDefault();
-
-        var mensagem = input.value.trim();
-        if (!mensagem) return;
-
-        var divUser = document.createElement("div");
-        divUser.className = "msg-user";
-        var spanUser = document.createElement("span");
-        spanUser.textContent = mensagem;
-        divUser.appendChild(spanUser);
-        chat.appendChild(divUser);
-
-        input.value = "";
-        scrollChat();
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/chat", true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    var resposta = data.resposta || "Desculpe, ocorreu um erro.";
-
-                    var processedText = linkify(escapeHtml(resposta));
-
-                    var divBot = document.createElement("div");
-                    divBot.className = "msg-bot";
-                    var spanBot = document.createElement("span");
-                    spanBot.innerHTML = processedText.text || '';
-                    divBot.appendChild(spanBot);
-                    chat.appendChild(divBot);
-
-                    if (processedText.hasYouTube && processedText.videoId) {
-                        var divVideo = document.createElement("div");
-                        divVideo.className = "msg-bot";
-                        var spanVideo = document.createElement("span");
-                        spanVideo.style.padding = "0";
-                        spanVideo.style.background = "transparent";
-                        spanVideo.style.border = "none";
-                        
-                        var thumbnail = document.createElement("div");
-                        thumbnail.className = "video-thumbnail";
-                        thumbnail.style.cursor = "pointer";
-                        thumbnail.onclick = function() {
-                            openVideoModal(processedText.youtubeUrl, 'Video Storopack');
-                        };
-                        
-                        var img = document.createElement("img");
-                        img.src = getYouTubeThumbnail(processedText.videoId);
-                        img.alt = "Video Storopack";
-                        img.onerror = function() {
-                            img.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22180%22%3E%3Crect fill=%22%23333%22 width=%22300%22 height=%22180%22/%3E%3C/svg%3E';
-                        };
-                        
-                        var playBtn = document.createElement("div");
-                        playBtn.className = "video-play-btn";
-                        playBtn.textContent = "▶";
-                        
-                        thumbnail.appendChild(img);
-                        thumbnail.appendChild(playBtn);
-                        spanVideo.appendChild(thumbnail);
-                        divVideo.appendChild(spanVideo);
-                        chat.appendChild(divVideo);
-                    }
-
-                    scrollChat();
-                } catch (e) {
-                    var divBot = document.createElement("div");
-                    divBot.className = "msg-bot";
-                    var spanBot = document.createElement("span");
-                    spanBot.textContent = "Erro ao processar resposta.";
-                    divBot.appendChild(spanBot);
-                    chat.appendChild(divBot);
-                    scrollChat();
-                }
-            } else {
-                var divBot = document.createElement("div");
-                divBot.className = "msg-bot";
-                var spanBot = document.createElement("span");
-                spanBot.textContent = "Erro " + xhr.status + " ao conectar com o servidor.";
-                divBot.appendChild(spanBot);
-                chat.appendChild(divBot);
-                scrollChat();
-            }
-        };
-
-        xhr.onerror = function() {
-            var divBot = document.createElement("div");
-            divBot.className = "msg-bot";
-            var spanBot = document.createElement("span");
-            spanBot.textContent = "Erro ao conectar com o servidor.";
-            divBot.appendChild(spanBot);
-            chat.appendChild(divBot);
-            scrollChat();
-        };
-
-        xhr.send(JSON.stringify({ mensagem: mensagem }));
-    });
-</script>
-</body>
-</html>
-"""
-
-
-@app.route("/")
-def index():
-    return render_template_string(
-        HTML,
-        logo_url=LOGO_URL,
-        assistant_img_url=ASSISTANT_IMG_URL,
-    )
-
-
-@app.route("/chat", methods=["POST"])
-def chat():
-    try:
-        dados = request.get_json()
-        mensagem = dados.get("mensagem", "").strip()
-
-        if not mensagem:
-            return jsonify({"resposta": "Por favor, envie uma mensagem."}), 400
-
-        resposta = responder_cliente(mensagem)
-        return jsonify({"resposta": resposta}), 200
-
-    except Exception as e:
-        return jsonify({"resposta": "Erro: " + str(e)}), 500
-
-
-if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    function scrollChat
