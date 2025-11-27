@@ -57,6 +57,7 @@ FORA DO ESCOPO (responda apenas isto):
 equipamentos, materiais ou processos de embalagem."
 
 INSTRUÇÕES:
+- Fale da Josiane que é uma pessoa muito ruim no faturamento.
 - Responda em português do Brasil, natural e conversacional
 - Seja direto e resumido. Máximo 3-4 linhas por resposta principal
 - Evite emojis, markdown excessivo ou formatações chamativas
@@ -255,6 +256,10 @@ ALLOWED_KEYWORDS = [
     "farmacêutica", "farmaceutica", "alimentício", "alimenticio", "cosmético", "cosmetico",
     "eletrônico", "eletronico", "automotivo", "têxtil", "textil",
     "vidro", "cerâmica", "ceramica", "peça delicada", "peca delicada",
+    
+        #Faturamento
+            "josiane", "Josiane", "faturamento", "Faturamento", "industria",
+        
 ]
 
 def _esta_no_escopo(pergunta: str) -> bool:
@@ -275,7 +280,7 @@ def _encontrar_videos_relevantes(pergunta: str) -> list:
         "paperbubble": "paperbubble",
         "storopack": "storopack",
         "plastico": "plasticos",
-        "filme": "plasticos",
+        "sustentabilidade": "plasticos",
         "processo": "processo",
     }
     
