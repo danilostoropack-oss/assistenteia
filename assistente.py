@@ -161,7 +161,7 @@ def _encontrar_videos_relevantes(pergunta: str) -> list:
         if termo in lower and chave in VIDEOS_STOROPACK:
             videos_encontrados.append(VIDEOS_STOROPACK[chave])
     
-    return videos_encontrados[:2]  # Máximo 2 vídeos
+    return videos_encontrados[:2]
 
 
 def _formatar_resposta(texto_ia: str, videos: list) -> str:
@@ -190,30 +190,24 @@ def responder_cliente(pergunta: str) -> str:
             "Envie sua dúvida sobre equipamentos, materiais ou processos de embalagem."
         )
 
-    tools = []
-
-    if VECTOR_STORE_ID := os.getenv("OPENAI_VECTOR_STORE_ID"):
-        tools.append({
-            "type": "file_search",
-            "vector_store_ids": [VECTOR_STORE_ID],
-        })
-
     try:
-        resposta = client.responses.create(
-            model="gpt-4-mini",
-            input=[
+        # Chamada correta para a API do OpenAI
+        resposta = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
                 {"role": "system", "content": ASSISTANT_PROMPT},
                 {"role": "user", "content": pergunta},
             ],
-            tools=tools or None,
+            max_tokens=500,
+            temperature=0.7,
         )
 
-        texto_ia = resposta.output_text
+        texto_ia = resposta.choices[0].message.content
         videos = _encontrar_videos_relevantes(pergunta)
         
         return _formatar_resposta(texto_ia, videos)
 
     except RateLimitError:
         return "No momento não consigo acessar o serviço. Verifique os créditos da OpenAI com o suporte."
-    except Exception:
-        return "Erro ao acessar o serviço. Tente novamente em instantes."
+    except Exception as e:
+        return f"Erro ao acessar o serviço: {str(e)}"
