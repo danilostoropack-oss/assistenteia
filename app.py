@@ -17,491 +17,190 @@ HTML = r"""
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --sp-primary: #0066cc;
             --sp-primary-dark: #003066;
             --sp-secondary: #00cccc;
-            --sp-gray-dark: #1a1a1a;
-            --sp-gray-medium: #333333;
-            --sp-gray-light: #f5f5f5;
-            --sp-text-dark: #1a1a1a;
-            --sp-text-light: #ffffff;
         }
 
         * { box-sizing: border-box; }
-        
+
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            background: linear-gradient(135deg, #0a1929, #0d2a47, #061e3e);
             min-height: 100vh;
+            font-family: Inter, sans-serif;
             display: flex;
-            align-items: stretch;
             justify-content: center;
-            background: linear-gradient(135deg, #0a1929 0%, #0d2a47 50%, #061e3e 100%);
-            color: var(--sp-text-dark);
-        }
-
-        .grid-overlay {
-            position: fixed;
-            inset: 0;
-            background: none;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 0;
         }
 
         .page-wrapper {
-            position: relative;
-            z-index: 1;
             width: 100%;
-            max-width: 960px;
-            padding: 40px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+            max-width: 900px;
+            padding: 24px;
         }
 
         .header-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            color: white;
         }
 
-        .header-left { display: flex; align-items: center; gap: 16px; }
-
-        /* LOGO MAIOR */
-        .logo { height: 72px; border-radius: 6px; object-fit: contain; }
-
-        .header-text-main { font-size: 18px; font-weight: 700; color: white; letter-spacing: 0.5px; }
-        .header-text-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-top: 4px; }
-
-        .header-right { display: flex; align-items: center; gap: 20px; }
-
-        .badge {
-            background: var(--sp-secondary);
-            border-radius: 20px;
-            padding: 8px 16px;
-            font-size: 12px;
-            color: #0a1929;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
+        .logo {
+            height: 72px;
+            border-radius: 6px;
         }
-        
-        .badge-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #22c55e;
-        }
-
-        .phone { font-size: 13px; color: rgba(255, 255, 255, 0.7); }
-        .phone strong { color: white; font-weight: 600; }
 
         .card {
-            margin-top: 4px;
-            background: rgba(255, 255, 255, 0.95);
+            margin-top: 24px;
+            background: white;
             border-radius: 12px;
+            padding: 20px;
             display: grid;
-            grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-            gap: 40px;
-            padding: 40px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            z-index: 1;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
-        .card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0, 102, 204, 0.03) 0%, rgba(0, 204, 204, 0.03) 100%);
-            opacity: 1;
-            z-index: 0;
-            pointer-events: none;
+        @media(max-width: 900px){
+            .card { grid-template-columns: 1fr; }
         }
 
-        h1 { margin: 0; font-size: 24px; font-weight: 700; color: var(--sp-primary); }
-        .subtitle { margin-top: 6px; margin-bottom: 10px; color: #555; font-size: 14px; }
-        .hint { font-size: 13px; color: #0066cc; margin-bottom: 14px; background: #f0f7ff; padding: 12px; border-radius: 6px; border-left: 4px solid #0066cc; }
-        .hint strong { color: #0066cc; }
-
-        .chat-wrapper { display: flex; flex-direction: column; gap: 10px; }
-        
         #chat {
+            height: 60vh;
+            background: #f6f6f6;
             border-radius: 12px;
-            background: #f8f9fa;
             padding: 12px;
-            height: 60vh;  /* MAIS ALTURA PARA MOBILE / GERAL */
-            max-height: 500px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            border: 1px solid #e0e0e0;
+            gap: 10px;
         }
 
-        .msg-user, .msg-bot { display: flex; width: 100%; }
-        .msg-user { justify-content: flex-end; }
-        .msg-bot { justify-content: flex-start; }
-
-        .msg-user span, .msg-bot span {
-            max-width: 80%;
-            padding: 8px 11px;
-            border-radius: 14px;
-            font-size: 13px;
-            line-height: 1.35;
-        }
-        
-        /* DEGRADÊ AZUL → AZUL MARINHO */
         .msg-user span {
             background: linear-gradient(to right, #0ea5e9, #003066);
             color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 8px 15px rgba(14, 165, 233, 0.5);
+            padding: 10px 14px;
+            border-radius: 14px;
+            max-width: 80%;
+            align-self: flex-end;
         }
-        
+
         .msg-bot span {
             background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .msg-bot span a {
-            color: var(--sp-primary);
-            text-decoration: underline;
-        }
-        
-        .msg-bot span a:hover {
-            color: var(--sp-primary-dark);
+            border: 1px solid #ddd;
+            padding: 10px 14px;
+            border-radius: 14px;
+            max-width: 80%;
+            align-self: flex-start;
         }
 
-        form { display: flex; gap: 8px; margin-top: 6px; }
-        
-        #mensagem {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            outline: none;
-            background: white;
-            color: #333;
-        }
-        
-        #mensagem::placeholder { color: #999; }
-        #mensagem:focus { border-color: var(--sp-primary); box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1); }
-
-        button[type="submit"] {
-            border-radius: 8px;
-            border: none;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            background: var(--sp-primary);
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: 0.2s ease;
-            white-space: nowrap;
-        }
-        
-        button[type="submit"]:hover {
-            background: var(--sp-primary-dark);
-            transform: translateY(-1px);
-        }
-
-        .helper-text { font-size: 12px; color: #999; }
-
-        .assistant-illustration {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-        
-        /* IMAGEM DA MANUTENÇÃO MAIOR */
         .assistant-illustration img {
             width: 100%;
             max-width: 360px;
             border-radius: 12px;
-            object-fit: cover;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .assistant-pill {
-            font-size: 12px;
-            background: var(--sp-secondary);
-            color: var(--sp-text-dark);
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: inline-flex;
-            gap: 6px;
-            align-items: center;
-            font-weight: 600;
-        }
-        
-        .assistant-pill span.dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #22c55e;
-        }
-        
-        .assistant-caption-title { font-size: 14px; font-weight: 600; color: #333; }
-        .assistant-caption-text { font-size: 13px; color: #666; }
-
-        .footer { margin-top: 20px; font-size: 12px; color: #999; text-align: center; }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
         }
 
-        .modal-overlay.active { display: flex; }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-            border: none;
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: #f0f0f0;
-            border: none;
-            color: #333;
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
-
-        .modal-close:hover { background: #e0e0e0; }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 12px;
-            background: #000;
-            margin-bottom: 16px;
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .modal-title { font-size: 18px; font-weight: 600; color: var(--sp-primary); margin-bottom: 12px; }
-        .modal-description { font-size: 13px; color: #666; line-height: 1.5; }
-
-        .video-thumbnail {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            margin: 8px 0;
-        }
-
-        .video-thumbnail img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .video-play-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 102, 204, 0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            cursor: pointer;
-            transition: 0.3s;
-            border: 3px solid white;
-            z-index: 10;
-        }
-
-        .video-thumbnail:hover .video-play-btn {
-            background: var(--sp-primary);
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-
-        /* AJUSTES PARA MOBILE */
-        @media (max-width: 900px) {
-            .page-wrapper {
-                padding: 16px 12px 20px;
-                max-width: 100%;
-            }
-
-            .header-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-
-            .header-right {
-                width: 100%;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .card {
-                grid-template-columns: 1fr;
-                padding: 18px 14px 20px;
-                gap: 24px;
-            }
-
-            #chat {
-                height: 55vh;
-                max-height: none;
-            }
-
-            form {
-                flex-direction: column;
-            }
-
-            #mensagem {
-                font-size: 15px;
-            }
-
-            button[type="submit"] {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .assistant-illustration img {
-                max-width: 260px; /* um pouco menor no mobile, mas ainda maior que antes */
-            }
-        }
+        form { display: flex; gap: 8px; margin-top: 12px; }
+        #mensagem { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; }
+        button { background: var(--sp-primary); border: none; padding: 12px 20px; color: white; border-radius: 8px; }
+        @media(max-width: 900px){ form{ flex-direction: column; } button{ width:100%; } }
     </style>
 </head>
 
 <body>
-<div class="grid-overlay"></div>
 
 <div class="page-wrapper">
+
     <div class="header-bar">
-        <div class="header-left">
-            <img src="{{ logo_url }}" alt="Storopack" class="logo">
+        <div style="display:flex; align-items:center; gap:14px;">
+            <img src="{{ logo_url }}" class="logo">
             <div>
-                <div class="header-text-main">STOROPACK</div>
-                <div class="header-text-sub">Assistente Tecnico de Embalagens de Protecao</div>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="badge">
-                <span class="badge-dot"></span>
-                Assistente Tecnico
-            </div>
-            <div class="phone">
-                Contato para suporte: <strong>+55 11 5677 4699</strong>
+                <b style="font-size:20px;">STOROPACK</b><br>
+                <span style="font-size:13px; opacity:.8;">Assistente Técnico</span>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div style="position: relative; z-index: 1;">
-            <h1>Central de Suporte Storopack</h1>
-            <p class="subtitle">Atendimento inteligente para duvidas tecnicas sobre equipamentos e solucoes de protecao.</p>
-            <p class="hint">Exemplo de pergunta: <strong>Minha AIRplus esta com erro E3, como posso resolver?</strong></p>
+        <div>
+            <h1 style="color:#0066cc; margin-top:0;">Central de Suporte</h1>
+            <p>Atendimento inteligente para dúvidas técnicas.</p>
 
-            <div class="chat-wrapper">
-                <div id="chat">
-                    <div class="msg-bot">
-                        <span>Ola! Sou o assistente tecnico da Storopack. Como posso te ajudar hoje?</span>
-                    </div>
-                </div>
-
-                <form id="form-chat">
-                    <input type="text" id="mensagem" autocomplete="off" placeholder="Descreva o problema, modelo do equipamento e codigo de erro, se houver..."/>
-                    <button type="submit">Enviar <span>➤</span></button>
-                </form>
-                <div class="helper-text">Por seguranca, nao compartilhe dados sensiveis. Este canal e exclusivo para suporte tecnico de equipamentos Storopack.</div>
+            <div id="chat">
+                <div class="msg-bot"><span>Olá! Como posso ajudar hoje?</span></div>
             </div>
+
+            <form id="form-chat">
+                <input id="mensagem" placeholder="Descreva o problema…">
+                <button>Enviar ➤</button>
+            </form>
         </div>
 
-        <div class="assistant-illustration" style="position: relative; z-index: 1;">
-            <img src="{{ assistant_img_url }}" alt="Assistente Storopack">
-            <div class="assistant-pill">
-                <span class="dot"></span>
-                Suporte tecnico imediato.
-            </div>
-            <div class="assistant-caption-title">Assistente de Manutencao & Operacao</div>
-            <div class="assistant-caption-text">Orientacoes rapidas e objetivas, com base em manuais tecnicos e boas praticas Storopack.</div>
+        <div class="assistant-illustration">
+            <img src="{{ assistant_img_url }}">
         </div>
     </div>
 
-    <div class="footer">© Storopack - Assistente Tecnico (beta)</div>
-</div>
-
-<div class="modal-overlay" id="videoModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeVideoModal()">X</button>
-        <div id="modalVideoContainer"></div>
-    </div>
 </div>
 
 <script>
-    var chat = document.getElementById("chat");
-    var form = document.getElementById("form-chat");
-    var input = document.getElementById("mensagem");
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("mensagem");
+    const form = document.getElementById("form-chat");
 
-    function escapeHtml(text) {
-        var div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    function scroll(){ chat.scrollTop = chat.scrollHeight; }
 
-    function scrollChat
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        let msg = input.value.trim();
+        if(!msg) return;
+
+        chat.innerHTML += `<div class="msg-user"><span>${msg}</span></div>`;
+        scroll();
+        input.value = "";
+
+        fetch("/chat", {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({ mensagem: msg })
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            chat.innerHTML += `<div class="msg-bot"><span>${data.resposta}</span></div>`;
+            scroll();
+        })
+        .catch(()=>{
+            chat.innerHTML += `<div class="msg-bot"><span>Erro ao conectar.</span></div>`;
+            scroll();
+        });
+    });
+</script>
+
+</body>
+</html>
+"""
+
+@app.route("/")
+def index():
+    return render_template_string(HTML, logo_url=LOGO_URL, assistant_img_url=ASSISTANT_IMG_URL)
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    try:
+        dados = request.get_json()
+        mensagem = dados.get("mensagem", "")
+        if not mensagem.strip():
+            return jsonify({"resposta": "Por favor, escreva sua dúvida."})
+        resposta = responder_cliente(mensagem)
+        return jsonify({"resposta": resposta})
+    except Exception as e:
+        return jsonify({"resposta": f"Erro interno: {str(e)}"})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
