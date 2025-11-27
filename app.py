@@ -571,11 +571,6 @@ HTML = """
     const form = document.getElementById("form-chat");
     const input = document.getElementById("mensagem");
 
-    function linkify(text) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
-    }
-
     function scrollChat() {
         chat.scrollTop = chat.scrollHeight;
     }
@@ -646,15 +641,8 @@ HTML = """
         if (!videoId) return;
 
         const modalContainer = document.getElementById("modalVideoContainer");
-        modalContainer.innerHTML = `
-            <div class="video-container">
-                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen></iframe>
-            </div>
-            <div class="modal-title">${escapeHtml(title)}</div>
-            <div class="modal-description">
-                Clique no botão X para fechar o vídeo.
-            </div>
-        `;
+        const titleEscaped = escapeHtml(title);
+        modalContainer.innerHTML = '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div><div class="modal-title">' + titleEscaped + '</div><div class="modal-description">Clique no botão X para fechar o vídeo.</div>';
 
         document.getElementById("videoModal").classList.add("active");
     }
@@ -665,24 +653,18 @@ HTML = """
 
     function linkify(text) {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return text.replace(urlRegex, (url) => {
+        return text.replace(urlRegex, function(url) {
             const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
             if (isYouTube) {
-                const title = extractYouTubeTitle(text, url) || "Vídeo Storopack";
-                return `<span class="video-link" onclick="openVideoModal('${url}', '${title}')">🎬 ${escapeHtml(url.substring(0, 50))}...</span>`;
+                const title = "Vídeo Storopack";
+                const displayUrl = escapeHtml(url.substring(0, 50)) + "...";
+                return '<span class="video-link" onclick="openVideoModal(\'' + url + '\', \'' + title + '\')">🎬 ' + displayUrl + '</span>';
             }
-            return `<a href="${url}" target="_blank">${url}</a>`;
+            return '<a href="' + url + '" target="_blank">' + url + '</a>';
         });
     }
 
     function extractYouTubeTitle(text, url) {
-        // Tenta extrair o título mencionado antes do link
-        const lines = text.split("\n");
-        for (let i = lines.length - 1; i >= 0; i--) {
-            if (lines[i].includes("http")) {
-                return lines[i - 1] || "Vídeo Storopack";
-            }
-        }
         return "Vídeo Storopack";
     }
 </script>
