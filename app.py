@@ -69,13 +69,13 @@ HTML = """
             justify-content: space-between;
             gap: 16px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
         }
 
         .header-left { display: flex; align-items: center; gap: 16px; }
         .logo { height: 50px; border-radius: 6px; object-fit: contain; }
-        .header-text-main { font-size: 18px; font-weight: 700; color: var(--sp-primary); letter-spacing: 0.5px; }
-        .header-text-sub { font-size: 13px; color: #666; margin-top: 4px; }
+        .header-text-main { font-size: 18px; font-weight: 700; color: white; letter-spacing: 0.5px; }
+        .header-text-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-top: 4px; }
 
         .header-right { display: flex; align-items: center; gap: 20px; }
 
@@ -84,7 +84,7 @@ HTML = """
             border-radius: 20px;
             padding: 8px 16px;
             font-size: 12px;
-            color: var(--sp-text-dark);
+            color: #0a1929;
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -98,8 +98,8 @@ HTML = """
             background: #22c55e;
         }
 
-        .phone { font-size: 13px; color: #666; }
-        .phone strong { color: var(--sp-primary); font-weight: 600; }
+        .phone { font-size: 13px; color: rgba(255, 255, 255, 0.7); }
+        .phone strong { color: white; font-weight: 600; }
 
         .card {
             margin-top: 4px;
@@ -151,6 +151,18 @@ HTML = """
             border: 1px solid #e0e0e0;
         }
 
+        .msg-user, .msg-bot { display: flex; width: 100%; }
+        .msg-user { justify-content: flex-end; }
+        .msg-bot { justify-content: flex-start; }
+
+        .msg-user span, .msg-bot span {
+            max-width: 80%;
+            padding: 8px 11px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.35;
+        }
+        
         .msg-user span {
             background: linear-gradient(to right, #0ea5e9, #22c55e);
             color: white;
@@ -269,37 +281,38 @@ HTML = """
         .modal-overlay.active { display: flex; }
 
         .modal-content {
-            background: #020c1b;
-            border-radius: 16px;
-            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
             max-width: 800px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-            border: 1px solid rgba(148, 163, 184, 0.5);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            border: none;
             position: relative;
         }
 
         .modal-close {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(148, 163, 184, 0.2);
+            top: 16px;
+            right: 16px;
+            background: #f0f0f0;
             border: none;
-            color: #e5f0ff;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            color: #333;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: 0.2s;
+            z-index: 1;
         }
 
-        .modal-close:hover { background: rgba(148, 163, 184, 0.4); }
+        .modal-close:hover { background: #e0e0e0; }
 
         .video-container {
             position: relative;
@@ -321,10 +334,49 @@ HTML = """
             border: none;
         }
 
-        .modal-title { font-size: 18px; font-weight: 600; color: #e5f0ff; margin-bottom: 12px; }
-        .modal-description { font-size: 13px; color: var(--sp-text-soft); line-height: 1.5; }
-        .video-link { color: #38bdf8; cursor: pointer; text-decoration: underline; }
-        .video-link:hover { color: #a5f3fc; }
+        .modal-title { font-size: 18px; font-weight: 600; color: var(--sp-primary); margin-bottom: 12px; }
+        .modal-description { font-size: 13px; color: #666; line-height: 1.5; }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            margin: 8px 0;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .video-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 102, 204, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 3px solid white;
+            z-index: 10;
+        }
+
+        .video-thumbnail:hover .video-play-btn {
+            background: var(--sp-primary);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
     </style>
 </head>
 
@@ -409,9 +461,9 @@ HTML = """
     }
 
     function extractYouTubeId(url) {
-        var regex1 = /youtube\\.com\\/watch\\?v=([a-zA-Z0-9_-]{11})/;
-        var regex2 = /youtu\\.be\\/([a-zA-Z0-9_-]{11})/;
-        var regex3 = /youtube\\.com\\/embed\\/([a-zA-Z0-9_-]{11})/;
+        var regex1 = /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/;
+        var regex2 = /youtu\.be\/([a-zA-Z0-9_-]{11})/;
+        var regex3 = /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/;
         
         var match = url.match(regex1);
         if (match) return match[1];
@@ -422,36 +474,68 @@ HTML = """
         return null;
     }
 
+    function getYouTubeThumbnail(videoId) {
+        if (!videoId) return '';
+        return 'https://img.youtube.com/vi/' + videoId + '/hqdefault.jpg';
+    }
+
     function openVideoModal(url, title) {
+        if (!url) return;
         var videoId = extractYouTubeId(url);
         if (!videoId) return;
 
-        var html = '<div class="video-container-mini"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div>';
-        var container = document.getElementById("modalVideoContainer");
-        container.innerHTML = '<div class="modal-mini-header"><span>Video Storopack</span><div class="modal-mini-buttons"><button class="modal-mini-btn" onclick="toggleMaximizeVideo()">⛶</button><button class="modal-mini-btn" onclick="closeVideoModal()">X</button></div></div><div class="modal-mini-body">' + html + '</div>';
+        var modalContainer = document.getElementById("modalVideoContainer");
+        var titleEscaped = escapeHtml(title || 'Video Storopack');
+        var html = '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div>';
+        html += '<div class="modal-title">' + titleEscaped + '</div>';
+        html += '<div class="modal-description">Clique no botao X para fechar.</div>';
         
+        modalContainer.innerHTML = html;
         document.getElementById("videoModal").classList.add("active");
     }
 
-    function toggleMaximizeVideo() {
-        var modal = document.getElementById("videoModal");
-        modal.classList.toggle("maximized");
-    }
-
     function closeVideoModal() {
-        document.getElementById("videoModal").classList.remove("active", "maximized");
+        document.getElementById("videoModal").classList.remove("active");
     }
 
     function linkify(text) {
-        var urlRegex = /(https?:\\/\\/[^\\s]+)/g;
-        return text.replace(urlRegex, function(url) {
+        if (!text || typeof text !== 'string') {
+            return { text: '', youtubeUrl: '', hasYouTube: false, videoId: '' };
+        }
+
+        var urlRegex = /(https?:\/\/[^\s]+)/g;
+        var hasYouTube = false;
+        var youtubeUrl = '';
+        var videoId = '';
+        
+        var matches = text.match(urlRegex);
+        if (matches && matches.length > 0) {
+            for (var i = 0; i < matches.length; i++) {
+                var url = matches[i];
+                var isYouTube = url.indexOf("youtube.com") > -1 || url.indexOf("youtu.be") > -1;
+                if (isYouTube) {
+                    hasYouTube = true;
+                    youtubeUrl = url;
+                    videoId = extractYouTubeId(url);
+                    break;
+                }
+            }
+        }
+        
+        var result = text.replace(urlRegex, function(url) {
             var isYouTube = url.indexOf("youtube.com") > -1 || url.indexOf("youtu.be") > -1;
             if (isYouTube) {
-                var displayUrl = url.substring(0, 50) + "...";
-                return '<span class="video-link" onclick="openVideoModal(' + "'" + url + "'" + ', ' + "'" + 'Video Storopack' + "'" + ')">Video: ' + escapeHtml(displayUrl) + '</span>';
+                return '';
             }
             return '<a href="' + url + '" target="_blank">' + url + '</a>';
         });
+        
+        return { 
+            text: (result || '').trim(), 
+            youtubeUrl: youtubeUrl, 
+            hasYouTube: hasYouTube, 
+            videoId: videoId 
+        };
     }
 
     form.addEventListener("submit", function(e) {
@@ -476,50 +560,67 @@ HTML = """
 
         xhr.onload = function() {
             if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                var resposta = data.resposta || "Desculpe, ocorreu um erro.";
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    var resposta = data.resposta || "Desculpe, ocorreu um erro.";
 
-                var processedText = linkify(escapeHtml(resposta));
+                    var processedText = linkify(escapeHtml(resposta));
 
-                var divBot = document.createElement("div");
-                divBot.className = "msg-bot";
-                var spanBot = document.createElement("span");
-                spanBot.innerHTML = processedText.text;
-                divBot.appendChild(spanBot);
-                chat.appendChild(divBot);
+                    var divBot = document.createElement("div");
+                    divBot.className = "msg-bot";
+                    var spanBot = document.createElement("span");
+                    spanBot.innerHTML = processedText.text || '';
+                    divBot.appendChild(spanBot);
+                    chat.appendChild(divBot);
 
-                if (processedText.hasYouTube) {
-                    var divVideo = document.createElement("div");
-                    divVideo.className = "msg-bot";
-                    var spanVideo = document.createElement("span");
-                    
-                    var thumbnail = document.createElement("div");
-                    thumbnail.className = "video-thumbnail";
-                    thumbnail.onclick = function() {
-                        openVideoModal(processedText.youtubeUrl, 'Video Storopack');
-                    };
-                    
-                    var img = document.createElement("img");
-                    img.src = getYouTubeThumbnail(processedText.videoId);
-                    img.alt = "Video Storopack";
-                    
-                    var playBtn = document.createElement("div");
-                    playBtn.className = "video-play-btn";
-                    playBtn.textContent = "▶";
-                    
-                    thumbnail.appendChild(img);
-                    thumbnail.appendChild(playBtn);
-                    spanVideo.appendChild(thumbnail);
-                    divVideo.appendChild(spanVideo);
-                    chat.appendChild(divVideo);
+                    if (processedText.hasYouTube && processedText.videoId) {
+                        var divVideo = document.createElement("div");
+                        divVideo.className = "msg-bot";
+                        var spanVideo = document.createElement("span");
+                        spanVideo.style.padding = "0";
+                        spanVideo.style.background = "transparent";
+                        spanVideo.style.border = "none";
+                        
+                        var thumbnail = document.createElement("div");
+                        thumbnail.className = "video-thumbnail";
+                        thumbnail.style.cursor = "pointer";
+                        thumbnail.onclick = function() {
+                            openVideoModal(processedText.youtubeUrl, 'Video Storopack');
+                        };
+                        
+                        var img = document.createElement("img");
+                        img.src = getYouTubeThumbnail(processedText.videoId);
+                        img.alt = "Video Storopack";
+                        img.onerror = function() {
+                            img.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22180%22%3E%3Crect fill=%22%23333%22 width=%22300%22 height=%22180%22/%3E%3C/svg%3E';
+                        };
+                        
+                        var playBtn = document.createElement("div");
+                        playBtn.className = "video-play-btn";
+                        playBtn.textContent = "▶";
+                        
+                        thumbnail.appendChild(img);
+                        thumbnail.appendChild(playBtn);
+                        spanVideo.appendChild(thumbnail);
+                        divVideo.appendChild(spanVideo);
+                        chat.appendChild(divVideo);
+                    }
+
+                    scrollChat();
+                } catch (e) {
+                    var divBot = document.createElement("div");
+                    divBot.className = "msg-bot";
+                    var spanBot = document.createElement("span");
+                    spanBot.textContent = "Erro ao processar resposta.";
+                    divBot.appendChild(spanBot);
+                    chat.appendChild(divBot);
+                    scrollChat();
                 }
-
-                scrollChat();
             } else {
                 var divBot = document.createElement("div");
                 divBot.className = "msg-bot";
                 var spanBot = document.createElement("span");
-                spanBot.textContent = "Erro: " + xhr.status;
+                spanBot.textContent = "Erro " + xhr.status + " ao conectar com o servidor.";
                 divBot.appendChild(spanBot);
                 chat.appendChild(divBot);
                 scrollChat();
