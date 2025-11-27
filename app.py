@@ -34,6 +34,7 @@ HTML = """
         * {
             box-sizing: border-box;
         }
+        
         body {
             margin: 0;
             padding: 0;
@@ -124,6 +125,7 @@ HTML = """
             border: 1px solid rgba(148, 163, 184, 0.5);
             backdrop-filter: blur(10px);
         }
+        
         .badge-dot {
             width: 9px;
             height: 9px;
@@ -136,6 +138,7 @@ HTML = """
             font-size: 12px;
             color: var(--sp-text-soft);
         }
+        
         .phone strong {
             color: #e5f0ff;
         }
@@ -191,17 +194,20 @@ HTML = """
             font-weight: 700;
             color: #e5f0ff;
         }
+        
         .subtitle {
             margin-top: 6px;
             margin-bottom: 10px;
             color: var(--sp-text-soft);
             font-size: 13px;
         }
+        
         .hint {
             font-size: 12px;
             color: #cbd5f5;
             margin-bottom: 14px;
         }
+        
         .hint strong {
             color: #ffffff;
         }
@@ -211,6 +217,7 @@ HTML = """
             flex-direction: column;
             gap: 10px;
         }
+        
         #chat {
             border-radius: 14px;
             background: rgba(15,23,42,0.9);
@@ -228,6 +235,7 @@ HTML = """
             display: flex;
             width: 100%;
         }
+        
         .msg-user { justify-content: flex-end; }
         .msg-bot { justify-content: flex-start; }
 
@@ -239,22 +247,26 @@ HTML = """
             font-size: 13px;
             line-height: 1.35;
         }
+        
         .msg-user span {
             background: linear-gradient(to right, #0ea5e9, #22c55e);
             color: white;
             border-bottom-right-radius: 4px;
             box-shadow: 0 8px 15px rgba(14,165,233,0.5);
         }
+        
         .msg-bot span {
             background: rgba(15,23,42,0.95);
             color: #e5e7eb;
             border-bottom-left-radius: 4px;
             border: 1px solid rgba(148, 163, 184, 0.7);
         }
+        
         .msg-bot span a {
             color: #38bdf8;
             text-decoration: underline;
         }
+        
         .msg-bot span a:hover {
             color: #a5f3fc;
         }
@@ -264,6 +276,7 @@ HTML = """
             gap: 8px;
             margin-top: 6px;
         }
+        
         #mensagem {
             flex: 1;
             padding: 9px 11px;
@@ -274,9 +287,11 @@ HTML = """
             background: rgba(15,23,42,0.9);
             color: #e5f0ff;
         }
+        
         #mensagem::placeholder {
             color: #64748b;
         }
+        
         #mensagem:focus {
             border-color: #38bdf8;
             box-shadow: 0 0 0 1px rgba(56,189,248,0.3);
@@ -298,6 +313,7 @@ HTML = """
             transition: 0.2s ease;
             white-space: nowrap;
         }
+        
         button[type="submit"]:hover {
             transform: translateY(-1px);
             filter: brightness(1.05);
@@ -316,6 +332,7 @@ HTML = """
             align-items: center;
             text-align: center;
         }
+        
         .assistant-illustration img {
             width: 290px;
             max-width: 100%;
@@ -325,6 +342,7 @@ HTML = """
                 0 20px 40px rgba(15, 23, 42, 0.9),
                 0 0 0 1px rgba(148, 163, 184, 0.55);
         }
+        
         .assistant-pill {
             font-size: 11px;
             background: rgba(224, 237, 251, 0.08);
@@ -336,17 +354,20 @@ HTML = """
             align-items: center;
             border: 1px solid rgba(148, 163, 184, 0.6);
         }
+        
         .assistant-pill span.dot {
             width: 6px;
             height: 6px;
             border-radius: 999px;
             background: #22c55e;
         }
+        
         .assistant-caption-title {
             font-size: 13px;
             font-weight: 600;
             color: #e5f0ff;
         }
+        
         .assistant-caption-text {
             font-size: 12px;
             color: var(--sp-text-soft);
@@ -427,7 +448,7 @@ HTML = """
             <img src="{{ assistant_img_url }}" alt="Assistente Storopack">
             <div class="assistant-pill">
                 <span class="dot"></span>
-                Suporte técnico imeadiato.
+                Suporte técnico imediato.
             </div>
             <div class="assistant-caption-title">
                 Assistente de Manutenção & Operação
@@ -448,5 +469,92 @@ HTML = """
     const form = document.getElementById("form-chat");
     const input = document.getElementById("mensagem");
 
-    // Função para transformar URLs em links clicáveis
-    function linkify(text)
+    function linkify(text) {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+    }
+
+    function scrollChat() {
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const mensagem = input.value.trim();
+        if (!mensagem) return;
+
+        // Exibir mensagem do usuário
+        const divUser = document.createElement("div");
+        divUser.className = "msg-user";
+        divUser.innerHTML = `<span>${escapeHtml(mensagem)}</span>`;
+        chat.appendChild(divUser);
+
+        input.value = "";
+        scrollChat();
+
+        try {
+            // Enviar para o backend
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mensagem: mensagem }),
+            });
+
+            const data = await response.json();
+            const resposta = data.resposta || "Desculpe, ocorreu um erro.";
+
+            // Exibir resposta do bot
+            const divBot = document.createElement("div");
+            divBot.className = "msg-bot";
+            divBot.innerHTML = `<span>${linkify(escapeHtml(resposta))}</span>`;
+            chat.appendChild(divBot);
+
+            scrollChat();
+        } catch (error) {
+            const divBot = document.createElement("div");
+            divBot.className = "msg-bot";
+            divBot.innerHTML = `<span>❌ Erro ao conectar com o servidor. Tente novamente.</span>`;
+            chat.appendChild(divBot);
+            scrollChat();
+        }
+    });
+
+    function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>
+"""
+
+
+@app.route("/")
+def index():
+    return render_template_string(
+        HTML,
+        logo_url=LOGO_URL,
+        assistant_img_url=ASSISTANT_IMG_URL,
+    )
+
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    try:
+        dados = request.get_json()
+        mensagem = dados.get("mensagem", "").strip()
+
+        if not mensagem:
+            return jsonify({"resposta": "Por favor, envie uma mensagem."}), 400
+
+        resposta = responder_cliente(mensagem)
+        return jsonify({"resposta": resposta}), 200
+
+    except Exception as e:
+        return jsonify({"resposta": f"Erro: {str(e)}"}), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=False, host="0.0.0.0", port=5000)
