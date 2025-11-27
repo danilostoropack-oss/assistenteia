@@ -3,24 +3,19 @@ from assistente import responder_cliente
 
 app = Flask(__name__)
 
-# URLs fornecidas
 LOGO_URL = "https://www.storopack.com.br/fileadmin/_processed_/4/9/csm_Storopack_Imagefilm_Thumbnail_118bf988a8.jpg"
 ASSISTANT_IMG_URL = "https://media.licdn.com/dms/image/v2/D4D05AQHQVQD99MOOug/videocover-low/B4DZoVhdqdK0B4-/0/1761297687645?e=2147483647&v=beta&t=FzJaplIJOhL1snkcWii_p3X9dPGyaSw1hjupd_3URvE"
-
 
 HTML = """
 <!doctype html>
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>Assistente Técnico Storopack</title>
+    <title>Assistente Tecnico Storopack</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Fonte Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --sp-blue: #005aa9;
@@ -31,9 +26,7 @@ HTML = """
             --sp-text-soft: #94a3b8;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         
         body {
             margin: 0;
@@ -43,19 +36,14 @@ HTML = """
             display: flex;
             align-items: stretch;
             justify-content: center;
-            background:
-                radial-gradient(circle at top left, rgba(56,189,248,0.25) 0, transparent 50%),
-                radial-gradient(circle at bottom right, rgba(59,130,246,0.25) 0, transparent 55%),
-                #020617;
+            background: radial-gradient(circle at top left, rgba(56,189,248,0.25) 0, transparent 50%), radial-gradient(circle at bottom right, rgba(59,130,246,0.25) 0, transparent 55%), #020617;
             color: var(--sp-text-main);
         }
 
         .grid-overlay {
             position: fixed;
             inset: 0;
-            background-image:
-                linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
             background-size: 40px 40px;
             pointer-events: none;
             opacity: 0.8;
@@ -80,37 +68,12 @@ HTML = """
             gap: 16px;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .logo { height: 44px; border-radius: 10px; object-fit: cover; box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4); }
+        .header-text-main { font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #e2ecff; }
+        .header-text-sub { font-size: 12px; color: var(--sp-text-soft); }
 
-        .logo {
-            height: 44px;
-            border-radius: 10px;
-            object-fit: cover;
-            box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
-        }
-
-        .header-text-main {
-            font-size: 15px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #e2ecff;
-        }
-
-        .header-text-sub {
-            font-size: 12px;
-            color: var(--sp-text-soft);
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .header-right { display: flex; align-items: center; gap: 12px; }
 
         .badge {
             background: rgba(224, 237, 251, 0.08);
@@ -134,14 +97,8 @@ HTML = """
             box-shadow: 0 0 8px rgba(34,197,94,0.9);
         }
 
-        .phone {
-            font-size: 12px;
-            color: var(--sp-text-soft);
-        }
-        
-        .phone strong {
-            color: #e5f0ff;
-        }
+        .phone { font-size: 12px; color: var(--sp-text-soft); }
+        .phone strong { color: #e5f0ff; }
 
         .card {
             margin-top: 4px;
@@ -151,9 +108,7 @@ HTML = """
             grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
             gap: 28px;
             padding: 22px 22px 20px 22px;
-            box-shadow:
-                0 30px 60px rgba(15, 23, 42, 0.85),
-                0 0 0 1px rgba(148, 163, 184, 0.35);
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.85), 0 0 0 1px rgba(148, 163, 184, 0.35);
             position: relative;
             overflow: hidden;
         }
@@ -163,60 +118,24 @@ HTML = """
             position: absolute;
             inset: -2px;
             border-radius: 22px;
-            background: conic-gradient(
-                from 180deg,
-                rgba(56,189,248,0.3),
-                rgba(59,130,246,0.1),
-                rgba(34,197,94,0.2),
-                rgba(56,189,248,0.3)
-            );
+            background: conic-gradient(from 180deg, rgba(56,189,248,0.3), rgba(59,130,246,0.1), rgba(34,197,94,0.2), rgba(56,189,248,0.3));
             opacity: 0.7;
             z-index: -1;
             filter: blur(6px);
         }
 
         @media (max-width: 900px) {
-            .page-wrapper {
-                padding: 16px;
-            }
-            .card {
-                grid-template-columns: 1fr;
-                padding: 18px;
-            }
-            .assistant-illustration {
-                display: none;
-            }
+            .page-wrapper { padding: 16px; }
+            .card { grid-template-columns: 1fr; padding: 18px; }
+            .assistant-illustration { display: none; }
         }
 
-        h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-            color: #e5f0ff;
-        }
-        
-        .subtitle {
-            margin-top: 6px;
-            margin-bottom: 10px;
-            color: var(--sp-text-soft);
-            font-size: 13px;
-        }
-        
-        .hint {
-            font-size: 12px;
-            color: #cbd5f5;
-            margin-bottom: 14px;
-        }
-        
-        .hint strong {
-            color: #ffffff;
-        }
+        h1 { margin: 0; font-size: 24px; font-weight: 700; color: #e5f0ff; }
+        .subtitle { margin-top: 6px; margin-bottom: 10px; color: var(--sp-text-soft); font-size: 13px; }
+        .hint { font-size: 12px; color: #cbd5f5; margin-bottom: 14px; }
+        .hint strong { color: #ffffff; }
 
-        .chat-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .chat-wrapper { display: flex; flex-direction: column; gap: 10px; }
         
         #chat {
             border-radius: 14px;
@@ -230,17 +149,11 @@ HTML = """
             border: 1px solid rgba(148, 163, 184, 0.6);
         }
 
-        .msg-user,
-        .msg-bot {
-            display: flex;
-            width: 100%;
-        }
-        
+        .msg-user, .msg-bot { display: flex; width: 100%; }
         .msg-user { justify-content: flex-end; }
         .msg-bot { justify-content: flex-start; }
 
-        .msg-user span,
-        .msg-bot span {
+        .msg-user span, .msg-bot span {
             max-width: 80%;
             padding: 8px 11px;
             border-radius: 14px;
@@ -271,11 +184,7 @@ HTML = """
             color: #a5f3fc;
         }
 
-        form {
-            display: flex;
-            gap: 8px;
-            margin-top: 6px;
-        }
+        form { display: flex; gap: 8px; margin-top: 6px; }
         
         #mensagem {
             flex: 1;
@@ -288,14 +197,8 @@ HTML = """
             color: #e5f0ff;
         }
         
-        #mensagem::placeholder {
-            color: #64748b;
-        }
-        
-        #mensagem:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 1px rgba(56,189,248,0.3);
-        }
+        #mensagem::placeholder { color: #64748b; }
+        #mensagem:focus { border-color: #38bdf8; box-shadow: 0 0 0 1px rgba(56,189,248,0.3); }
 
         button[type="submit"] {
             border-radius: 999px;
@@ -319,10 +222,7 @@ HTML = """
             filter: brightness(1.05);
         }
 
-        .helper-text {
-            font-size: 11px;
-            color: var(--sp-text-soft);
-        }
+        .helper-text { font-size: 11px; color: var(--sp-text-soft); }
 
         .assistant-illustration {
             display: flex;
@@ -338,9 +238,7 @@ HTML = """
             max-width: 100%;
             border-radius: 18px;
             object-fit: cover;
-            box-shadow:
-                0 20px 40px rgba(15, 23, 42, 0.9),
-                0 0 0 1px rgba(148, 163, 184, 0.55);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.9), 0 0 0 1px rgba(148, 163, 184, 0.55);
         }
         
         .assistant-pill {
@@ -362,25 +260,11 @@ HTML = """
             background: #22c55e;
         }
         
-        .assistant-caption-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #e5f0ff;
-        }
-        
-        .assistant-caption-text {
-            font-size: 12px;
-            color: var(--sp-text-soft);
-        }
+        .assistant-caption-title { font-size: 13px; font-weight: 600; color: #e5f0ff; }
+        .assistant-caption-text { font-size: 12px; color: var(--sp-text-soft); }
 
-        .footer {
-            margin-top: 4px;
-            font-size: 11px;
-            color: var(--sp-text-soft);
-            text-align: center;
-        }
+        .footer { margin-top: 4px; font-size: 11px; color: var(--sp-text-soft); text-align: center; }
 
-        /* Modal para vídeos */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -392,9 +276,7 @@ HTML = """
             justify-content: center;
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
 
         .modal-content {
             background: #020c1b;
@@ -427,9 +309,7 @@ HTML = """
             transition: 0.2s;
         }
 
-        .modal-close:hover {
-            background: rgba(148, 163, 184, 0.4);
-        }
+        .modal-close:hover { background: rgba(148, 163, 184, 0.4); }
 
         .video-container {
             position: relative;
@@ -451,28 +331,10 @@ HTML = """
             border: none;
         }
 
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #e5f0ff;
-            margin-bottom: 12px;
-        }
-
-        .modal-description {
-            font-size: 13px;
-            color: var(--sp-text-soft);
-            line-height: 1.5;
-        }
-
-        .video-link {
-            color: #38bdf8;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .video-link:hover {
-            color: #a5f3fc;
-        }
+        .modal-title { font-size: 18px; font-weight: 600; color: #e5f0ff; margin-bottom: 12px; }
+        .modal-description { font-size: 13px; color: var(--sp-text-soft); line-height: 1.5; }
+        .video-link { color: #38bdf8; cursor: pointer; text-decoration: underline; }
+        .video-link:hover { color: #a5f3fc; }
     </style>
 </head>
 
@@ -480,19 +342,18 @@ HTML = """
 <div class="grid-overlay"></div>
 
 <div class="page-wrapper">
-    <!-- Barra superior -->
     <div class="header-bar">
         <div class="header-left">
             <img src="{{ logo_url }}" alt="Storopack" class="logo">
             <div>
                 <div class="header-text-main">STOROPACK</div>
-                <div class="header-text-sub">Assistente Técnico de Embalagens de Proteção</div>
+                <div class="header-text-sub">Assistente Tecnico de Embalagens de Protecao</div>
             </div>
         </div>
         <div class="header-right">
             <div class="badge">
                 <span class="badge-dot"></span>
-                Assistente Técnico
+                Assistente Tecnico
             </div>
             <div class="phone">
                 Contato para suporte: <strong>+55 11 5677 4699</strong>
@@ -500,150 +361,88 @@ HTML = """
         </div>
     </div>
 
-    <!-- Card principal -->
     <div class="card">
-        <!-- Coluna do chat -->
         <div>
             <h1>Central de Suporte Storopack</h1>
-            <p class="subtitle">
-                Atendimento inteligente para dúvidas técnicas sobre equipamentos e soluções de proteção.
-            </p>
-            <p class="hint">
-                Exemplo de pergunta: <strong>"Minha AIRplus está com erro E10, como posso resolver?"</strong>
-            </p>
+            <p class="subtitle">Atendimento inteligente para duvidas tecnicas sobre equipamentos e solucoes de protecao.</p>
+            <p class="hint">Exemplo de pergunta: <strong>Minha AIRplus esta com erro E10, como posso resolver?</strong></p>
 
             <div class="chat-wrapper">
                 <div id="chat">
                     <div class="msg-bot">
-                        <span>Olá! 👋 Sou o assistente técnico Storopack. Como posso te ajudar hoje?</span>
+                        <span>Ola! Sou o assistente tecnico Storopack. Como posso te ajudar hoje?</span>
                     </div>
                 </div>
 
                 <form id="form-chat">
-                    <input
-                        type="text"
-                        id="mensagem"
-                        autocomplete="off"
-                        placeholder="Descreva o problema, modelo do equipamento e código de erro, se houver..."
-                    />
-                    <button type="submit">
-                        Enviar
-                        <span>➤</span>
-                    </button>
+                    <input type="text" id="mensagem" autocomplete="off" placeholder="Descreva o problema, modelo do equipamento e codigo de erro, se houver..."/>
+                    <button type="submit">Enviar <span>➤</span></button>
                 </form>
-                <div class="helper-text">
-                    Por segurança, não compartilhe dados sensíveis. Este canal é exclusivo para suporte técnico de equipamentos Storopack.
-                </div>
+                <div class="helper-text">Por seguranca, nao compartilhe dados sensiveis. Este canal e exclusivo para suporte tecnico de equipamentos Storopack.</div>
             </div>
         </div>
 
-        <!-- Coluna da imagem -->
         <div class="assistant-illustration">
             <img src="{{ assistant_img_url }}" alt="Assistente Storopack">
             <div class="assistant-pill">
                 <span class="dot"></span>
-                Suporte técnico imediato.
+                Suporte tecnico imediato.
             </div>
-            <div class="assistant-caption-title">
-                Assistente de Manutenção & Operação
-            </div>
-            <div class="assistant-caption-text">
-                Orientações rápidas e objetivas, com base em manuais técnicos e boas práticas Storopack.
-            </div>
+            <div class="assistant-caption-title">Assistente de Manutencao & Operacao</div>
+            <div class="assistant-caption-text">Orientacoes rapidas e objetivas, com base em manuais tecnicos e boas praticas Storopack.</div>
         </div>
     </div>
 
-    <div class="footer">
-        © Storopack – Assistente Técnico (beta)
-    </div>
+    <div class="footer">© Storopack - Assistente Tecnico (beta)</div>
 </div>
 
-<!-- Modal para vídeos -->
 <div class="modal-overlay" id="videoModal">
     <div class="modal-content">
-        <button class="modal-close" onclick="closeVideoModal()">✕</button>
+        <button class="modal-close" onclick="closeVideoModal()">X</button>
         <div id="modalVideoContainer"></div>
     </div>
 </div>
 
 <script>
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form-chat");
-    const input = document.getElementById("mensagem");
+    var chat = document.getElementById("chat");
+    var form = document.getElementById("form-chat");
+    var input = document.getElementById("mensagem");
+
+    function escapeHtml(text) {
+        var div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
     function scrollChat() {
         chat.scrollTop = chat.scrollHeight;
     }
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const mensagem = input.value.trim();
-        if (!mensagem) return;
-
-        // Exibir mensagem do usuário
-        const divUser = document.createElement("div");
-        divUser.className = "msg-user";
-        divUser.innerHTML = `<span>${escapeHtml(mensagem)}</span>`;
-        chat.appendChild(divUser);
-
-        input.value = "";
-        scrollChat();
-
-        try {
-            // Enviar para o backend
-            const response = await fetch("/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ mensagem: mensagem }),
-            });
-
-            const data = await response.json();
-            const resposta = data.resposta || "Desculpe, ocorreu um erro.";
-
-            // Exibir resposta do bot
-            const divBot = document.createElement("div");
-            divBot.className = "msg-bot";
-            divBot.innerHTML = `<span>${linkify(escapeHtml(resposta))}</span>`;
-            chat.appendChild(divBot);
-
-            scrollChat();
-        } catch (error) {
-            const divBot = document.createElement("div");
-            divBot.className = "msg-bot";
-            divBot.innerHTML = `<span>❌ Erro ao conectar com o servidor. Tente novamente.</span>`;
-            chat.appendChild(divBot);
-            scrollChat();
-        }
-    });
-
-    function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
     function extractYouTubeId(url) {
-        const regexps = [
-            /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-            /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-            /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/
-        ];
-        for (let regex of regexps) {
-            const match = url.match(regex);
-            if (match) return match[1];
-        }
+        var regex1 = /youtube\\.com\\/watch\\?v=([a-zA-Z0-9_-]{11})/;
+        var regex2 = /youtu\\.be\\/([a-zA-Z0-9_-]{11})/;
+        var regex3 = /youtube\\.com\\/embed\\/([a-zA-Z0-9_-]{11})/;
+        
+        var match = url.match(regex1);
+        if (match) return match[1];
+        match = url.match(regex2);
+        if (match) return match[1];
+        match = url.match(regex3);
+        if (match) return match[1];
         return null;
     }
 
     function openVideoModal(url, title) {
-        const videoId = extractYouTubeId(url);
+        var videoId = extractYouTubeId(url);
         if (!videoId) return;
 
-        const modalContainer = document.getElementById("modalVideoContainer");
-        const titleEscaped = escapeHtml(title);
-        modalContainer.innerHTML = '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div><div class="modal-title">' + titleEscaped + '</div><div class="modal-description">Clique no botão X para fechar o vídeo.</div>';
-
+        var modalContainer = document.getElementById("modalVideoContainer");
+        var titleEscaped = escapeHtml(title);
+        var html = '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allowfullscreen></iframe></div>';
+        html += '<div class="modal-title">' + titleEscaped + '</div>';
+        html += '<div class="modal-description">Clique no botao X para fechar o video.</div>';
+        
+        modalContainer.innerHTML = html;
         document.getElementById("videoModal").classList.add("active");
     }
 
@@ -652,21 +451,73 @@ HTML = """
     }
 
     function linkify(text) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        var urlRegex = /(https?:\\/\\/[^\\s]+)/g;
         return text.replace(urlRegex, function(url) {
-            const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
+            var isYouTube = url.indexOf("youtube.com") > -1 || url.indexOf("youtu.be") > -1;
             if (isYouTube) {
-                const title = "Vídeo Storopack";
-                const displayUrl = escapeHtml(url.substring(0, 50)) + "...";
-                return '<span class="video-link" onclick="openVideoModal(\'' + url + '\', \'' + title + '\')">🎬 ' + displayUrl + '</span>';
+                var displayUrl = url.substring(0, 50) + "...";
+                return '<span class="video-link" onclick="openVideoModal(' + "'" + url + "'" + ', ' + "'" + 'Video Storopack' + "'" + ')">Video: ' + escapeHtml(displayUrl) + '</span>';
             }
             return '<a href="' + url + '" target="_blank">' + url + '</a>';
         });
     }
 
-    function extractYouTubeTitle(text, url) {
-        return "Vídeo Storopack";
-    }
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        var mensagem = input.value.trim();
+        if (!mensagem) return;
+
+        var divUser = document.createElement("div");
+        divUser.className = "msg-user";
+        var spanUser = document.createElement("span");
+        spanUser.textContent = mensagem;
+        divUser.appendChild(spanUser);
+        chat.appendChild(divUser);
+
+        input.value = "";
+        scrollChat();
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/chat", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                var resposta = data.resposta || "Desculpe, ocorreu um erro.";
+
+                var divBot = document.createElement("div");
+                divBot.className = "msg-bot";
+                var spanBot = document.createElement("span");
+                spanBot.innerHTML = linkify(escapeHtml(resposta));
+                divBot.appendChild(spanBot);
+                chat.appendChild(divBot);
+
+                scrollChat();
+            } else {
+                var divBot = document.createElement("div");
+                divBot.className = "msg-bot";
+                var spanBot = document.createElement("span");
+                spanBot.textContent = "Erro: " + xhr.status;
+                divBot.appendChild(spanBot);
+                chat.appendChild(divBot);
+                scrollChat();
+            }
+        };
+
+        xhr.onerror = function() {
+            var divBot = document.createElement("div");
+            divBot.className = "msg-bot";
+            var spanBot = document.createElement("span");
+            spanBot.textContent = "Erro ao conectar com o servidor.";
+            divBot.appendChild(spanBot);
+            chat.appendChild(divBot);
+            scrollChat();
+        };
+
+        xhr.send(JSON.stringify({ mensagem: mensagem }));
+    });
 </script>
 </body>
 </html>
@@ -695,7 +546,7 @@ def chat():
         return jsonify({"resposta": resposta}), 200
 
     except Exception as e:
-        return jsonify({"resposta": f"Erro: {str(e)}"}), 500
+        return jsonify({"resposta": "Erro: " + str(e)}), 500
 
 
 if __name__ == "__main__":
