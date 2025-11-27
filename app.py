@@ -379,6 +379,100 @@ HTML = """
             color: var(--sp-text-soft);
             text-align: center;
         }
+
+        /* Modal para vídeos */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #020c1b;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(148, 163, 184, 0.2);
+            border: none;
+            color: #e5f0ff;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(148, 163, 184, 0.4);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+            margin-bottom: 16px;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e5f0ff;
+            margin-bottom: 12px;
+        }
+
+        .modal-description {
+            font-size: 13px;
+            color: var(--sp-text-soft);
+            line-height: 1.5;
+        }
+
+        .video-link {
+            color: #38bdf8;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .video-link:hover {
+            color: #a5f3fc;
+        }
     </style>
 </head>
 
@@ -464,6 +558,14 @@ HTML = """
     </div>
 </div>
 
+<!-- Modal para vídeos -->
+<div class="modal-overlay" id="videoModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeVideoModal()">✕</button>
+        <div id="modalVideoContainer"></div>
+    </div>
+</div>
+
 <script>
     const chat = document.getElementById("chat");
     const form = document.getElementById("form-chat");
@@ -524,6 +626,64 @@ HTML = """
         const div = document.createElement("div");
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function extractYouTubeId(url) {
+        const regexps = [
+            /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+            /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+            /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/
+        ];
+        for (let regex of regexps) {
+            const match = url.match(regex);
+            if (match) return match[1];
+        }
+        return null;
+    }
+
+    function openVideoModal(url, title) {
+        const videoId = extractYouTubeId(url);
+        if (!videoId) return;
+
+        const modalContainer = document.getElementById("modalVideoContainer");
+        modalContainer.innerHTML = `
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen></iframe>
+            </div>
+            <div class="modal-title">${escapeHtml(title)}</div>
+            <div class="modal-description">
+                Clique no botão X para fechar o vídeo.
+            </div>
+        `;
+
+        document.getElementById("videoModal").classList.add("active");
+    }
+
+    function closeVideoModal() {
+        document.getElementById("videoModal").classList.remove("active");
+    }
+
+    function linkify(text) {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, (url) => {
+            const isYouTube = url.includes("youtube.com") || url.includes("youtu.be");
+            if (isYouTube) {
+                const title = extractYouTubeTitle(text, url) || "Vídeo Storopack";
+                return `<span class="video-link" onclick="openVideoModal('${url}', '${title}')">🎬 ${escapeHtml(url.substring(0, 50))}...</span>`;
+            }
+            return `<a href="${url}" target="_blank">${url}</a>`;
+        });
+    }
+
+    function extractYouTubeTitle(text, url) {
+        // Tenta extrair o título mencionado antes do link
+        const lines = text.split("\n");
+        for (let i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].includes("http")) {
+                return lines[i - 1] || "Vídeo Storopack";
+            }
+        }
+        return "Vídeo Storopack";
     }
 </script>
 </body>
