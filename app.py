@@ -97,13 +97,9 @@ HTML = r"""
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
         }
 
-        .status-label {
-            white-space: nowrap;
-        }
+        .status-label { white-space: nowrap; }
 
-        .phone {
-            color: rgba(255,255,255,0.7);
-        }
+        .phone { color: rgba(255,255,255,0.7); }
         .phone strong { color: white; }
 
         .card {
@@ -148,7 +144,7 @@ HTML = r"""
             border-radius: 12px;
             background: #f8f9fa;
             padding: 12px;
-            height: 360px;
+            height: 420px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -194,59 +190,110 @@ HTML = r"""
             color: var(--sp-primary-dark);
         }
 
-        /* Estilos dos botões de módulo */
+        /* ========== BOTÕES DE MÓDULO COM IMAGEM ========== */
         .module-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-top: 10px;
-            justify-content: center;
+            padding: 5px;
         }
 
-        .module-btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
+        .module-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-card.airplus:hover { border-color: #3b82f6; }
+        .module-card.paperplus:hover { border-color: #84cc16; }
+        .module-card.foamplus:hover { border-color: #f97316; }
+        .module-card.airmove:hover { border-color: #8b5cf6; }
+
+        .module-card-img {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            background: #f8f9fa;
+            padding: 8px;
+        }
+
+        .module-card-label {
+            padding: 10px;
+            text-align: center;
             font-weight: 600;
+            font-size: 13px;
+            color: white;
+        }
+
+        .module-card.airplus .module-card-label { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .module-card.paperplus .module-card-label { background: linear-gradient(135deg, #84cc16, #65a30d); }
+        .module-card.foamplus .module-card-label { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .module-card.airmove .module-card-label { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+        /* ========== SUB-BOTÕES DE MODELOS ========== */
+        .submodule-container {
+            margin-top: 10px;
+        }
+
+        .submodule-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .submodule-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .submodule-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
             cursor: pointer;
             transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e5e7eb;
         }
 
-        .module-btn:hover {
+        .submodule-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-color: var(--sp-primary);
         }
 
-        .module-btn.airplus {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
+        .submodule-card-img {
+            width: 100%;
+            height: 60px;
+            object-fit: contain;
+            background: #f8f9fa;
+            padding: 4px;
         }
 
-        .module-btn.paperplus {
-            background: linear-gradient(135deg, #84cc16, #65a30d);
-            color: white;
+        .submodule-card-label {
+            padding: 6px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 11px;
+            color: #333;
+            background: #f1f5f9;
+            border-top: 1px solid #e5e7eb;
         }
 
-        .module-btn.foamplus {
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            color: white;
-        }
-
-        .module-btn.airmove {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
-        }
-
-        .module-btn .icon {
-            font-size: 18px;
-        }
-
-        /* Badge do módulo ativo */
+        /* ========== BADGE DO MÓDULO ATIVO ========== */
         .module-badge {
             display: none;
             align-items: center;
@@ -259,9 +306,7 @@ HTML = r"""
             color: white;
         }
 
-        .module-badge.active {
-            display: inline-flex;
-        }
+        .module-badge.active { display: inline-flex; }
 
         .module-badge.airplus { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
         .module-badge.paperplus { background: linear-gradient(135deg, #84cc16, #65a30d); }
@@ -280,9 +325,7 @@ HTML = r"""
             transition: 0.2s;
         }
 
-        .back-btn:hover {
-            background: #dc2626;
-        }
+        .back-btn:hover { background: #dc2626; }
 
         form { display: flex; gap: 8px; margin-top: 6px; }
         
@@ -429,9 +472,7 @@ HTML = r"""
             transition: 0.18s;
         }
 
-        .modal-close:hover {
-            background: #e5e7eb;
-        }
+        .modal-close:hover { background: #e5e7eb; }
 
         .video-container {
             position: relative;
@@ -497,9 +538,7 @@ HTML = r"""
         }
 
         @media (max-width: 900px) {
-            .page-wrapper {
-                padding: 16px 12px 20px;
-            }
+            .page-wrapper { padding: 16px 12px 20px; }
 
             .header-bar {
                 flex-direction: column;
@@ -507,9 +546,7 @@ HTML = r"""
                 gap: 8px;
             }
 
-            .header-right {
-                align-items: flex-start;
-            }
+            .header-right { align-items: flex-start; }
 
             .card {
                 grid-template-columns: 1fr;
@@ -522,26 +559,31 @@ HTML = r"""
                 max-height: none;
             }
 
-            form {
-                flex-direction: column;
-            }
+            form { flex-direction: column; }
 
             button[type="submit"] {
                 width: 100%;
                 justify-content: center;
             }
 
-            .assistant-illustration img {
-                max-width: 280px;
-            }
+            .assistant-illustration img { max-width: 280px; }
 
             .module-buttons {
-                flex-direction: column;
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .module-btn {
-                width: 100%;
-                justify-content: center;
+            .submodule-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .module-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .submodule-buttons {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -573,7 +615,6 @@ HTML = r"""
             <h1>Central de Suporte Storopack</h1>
             <p class="subtitle">Atendimento inteligente para duvidas tecnicas sobre equipamentos e solucoes de protecao.</p>
             
-            <!-- Badge do módulo ativo -->
             <div id="moduleBadge" class="module-badge">
                 <span id="moduleBadgeText"></span>
                 <button class="back-btn" onclick="voltarInicio()">← Voltar</button>
@@ -586,21 +627,24 @@ HTML = r"""
                     <div class="msg-bot">
                         <span>Ola! Sou o assistente tecnico da Storopack. Como posso te ajudar hoje?</span>
                     </div>
-                    <!-- Botões de módulo -->
                     <div class="msg-bot" id="moduleButtonsContainer">
-                        <div class="module-buttons">
-                            <button class="module-btn airplus" onclick="selecionarModulo('airplus')">
-                                <span class="icon">💨</span> AIRplus
-                            </button>
-                            <button class="module-btn paperplus" onclick="selecionarModulo('paperplus')">
-                                <span class="icon">📄</span> PAPERplus
-                            </button>
-                            <button class="module-btn foamplus" onclick="selecionarModulo('foamplus')">
-                                <span class="icon">🧽</span> FOAMplus
-                            </button>
-                            <button class="module-btn airmove" onclick="selecionarModulo('airmove')">
-                                <span class="icon">📦</span> AIRmove
-                            </button>
+                        <div class="module-buttons" id="mainModuleButtons">
+                            <div class="module-card airplus" onclick="selecionarModulo('airplus')">
+                                <img class="module-card-img" src="https://img.directindustry.com/pt/images_di/photo-g/34409-10167740.webp" alt="AIRplus">
+                                <div class="module-card-label">AIRplus</div>
+                            </div>
+                            <div class="module-card airmove" onclick="mostrarSubmodulos('airmove')">
+                                <img class="module-card-img" src="https://www.storopack.com.br/fileadmin/_processed_/7/e/csm_PP_AP_AIRmove___machine_front_motive2_cushion_film_low_res_300dpi_061fd19c2b.jpg" alt="AIRmove">
+                                <div class="module-card-label">AIRmove</div>
+                            </div>
+                            <div class="module-card paperplus" onclick="mostrarSubmodulos('paperplus')">
+                                <img class="module-card-img" src="https://www.storopack.com.br/fileadmin/_processed_/1/e/csm_PP_PP_Classic_CX_machine_0539_1280x580px_EUROPEAN_STAND_b213d265e2.png" alt="PAPERplus">
+                                <div class="module-card-label">PAPERplus</div>
+                            </div>
+                            <div class="module-card foamplus" onclick="mostrarSubmodulos('foamplus')">
+                                <img class="module-card-img" src="https://www.storopack.com.br/fileadmin/_processed_/1/9/csm_PP_FP_Bag_Packer3_machine_6327_1280x580px_277b779f5d.png" alt="FOAMplus">
+                                <div class="module-card-label">FOAMplus</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -644,8 +688,8 @@ HTML = r"""
     var moduleButtonsContainer = document.getElementById("moduleButtonsContainer");
     var hintText = document.getElementById("hintText");
 
-    // Módulo ativo atual
     var moduloAtivo = null;
+    var submoduloAtivo = null;
 
     // Configurações dos módulos
     var modulosConfig = {
@@ -653,48 +697,147 @@ HTML = r"""
             nome: "AIRplus",
             cor: "airplus",
             placeholder: "Descreva seu problema com AIRplus (ex: erro E3, travamento, etc.)...",
-            hint: "Exemplo: Minha AIRplus esta com erro E3, como posso resolver?"
+            hint: "Exemplo: Minha AIRplus esta com erro E3, como posso resolver?",
+            img: "https://img.directindustry.com/pt/images_di/photo-g/34409-10167740.webp",
+            submodulos: null
+        },
+        airmove: {
+            nome: "AIRmove",
+            cor: "airmove",
+            placeholder: "Descreva seu problema com AIRmove...",
+            hint: "Exemplo: O AIRmove nao esta inflando as almofadas corretamente.",
+            img: "https://www.storopack.com.br/fileadmin/_processed_/7/e/csm_PP_AP_AIRmove___machine_front_motive2_cushion_film_low_res_300dpi_061fd19c2b.jpg",
+            submodulos: {
+                "AIRmove 1": "https://www.storopack.com.br/fileadmin/_processed_/7/e/csm_PP_AP_AIRmove___machine_front_motive2_cushion_film_low_res_300dpi_061fd19c2b.jpg",
+                "AIRmove 2": "https://www.storopack.com.br/fileadmin/_processed_/7/e/csm_PP_AP_AIRmove___machine_front_motive2_cushion_film_low_res_300dpi_061fd19c2b.jpg"
+            }
         },
         paperplus: {
             nome: "PAPERplus",
             cor: "paperplus",
             placeholder: "Descreva seu problema com PAPERplus (ex: papel preso, corte irregular, etc.)...",
-            hint: "Exemplo: O papel esta prendendo na maquina PAPERplus, o que fazer?"
+            hint: "Exemplo: O papel esta prendendo na maquina PAPERplus, o que fazer?",
+            img: "https://www.storopack.com.br/fileadmin/_processed_/1/e/csm_PP_PP_Classic_CX_machine_0539_1280x580px_EUROPEAN_STAND_b213d265e2.png",
+            submodulos: {
+                "Shooter": "https://www.storopack.com.br/fileadmin/_processed_/5/9/csm_PP_PP_Shooter_machine_tablestand_motive_1_1280x580px_6913698898.png",
+                "Papillon": "https://www.storopack.com.br/fileadmin/_processed_/c/a/csm_PP_PP_Papillon_machine_tablestand_motive1_1280x580px_b746b18c6a.png",
+                "Classic": "https://img.directindustry.com/pt/images_di/photo-g/34409-12098453.webp",
+                "Track": "https://swiftpak.imgix.net/uploads/Products/Papertech/16_12904_a.jpg?w=1135&fit=crop&crop=edges,focalpoint&q=75&auto=format&fm=png",
+                "CX": "https://www.storopack.com.br/fileadmin/_processed_/1/e/csm_PP_PP_Classic_CX_machine_0539_1280x580px_EUROPEAN_STAND_b213d265e2.png",
+                "Coiler": "https://www.storopack.com.br/fileadmin/_processed_/1/4/csm_PP_PP_Coiler2_Classic_CX_machine_1985_low_res_1280x580px_6e072a7d32.png"
+            }
         },
         foamplus: {
             nome: "FOAMplus",
             cor: "foamplus",
             placeholder: "Descreva seu problema com FOAMplus (ex: espuma nao expande, vazamento, etc.)...",
-            hint: "Exemplo: A espuma do FOAMplus nao esta expandindo corretamente."
-        },
-        airmove: {
-            nome: "AIRmove",
-            cor: "airmove",
-            placeholder: "Descreva seu problema com AIRmove (ex: almofada nao infla, sensor com defeito, etc.)...",
-            hint: "Exemplo: As almofadas do AIRmove nao estao inflando direito."
+            hint: "Exemplo: A espuma do FOAMplus nao esta expandindo corretamente.",
+            img: "https://www.storopack.com.br/fileadmin/_processed_/1/9/csm_PP_FP_Bag_Packer3_machine_6327_1280x580px_277b779f5d.png",
+            submodulos: {
+                "Bagpacker": "https://www.storopack.com.br/fileadmin/_processed_/1/9/csm_PP_FP_Bag_Packer3_machine_6327_1280x580px_277b779f5d.png",
+                "Handpacker": "https://5.imimg.com/data5/HS/KC/MW/SELLER-8794370/foamplus-hand-packer-2-machine-1000x1000.jpg"
+            }
         }
     };
 
-    function selecionarModulo(modulo) {
+    function mostrarSubmodulos(modulo) {
+        var config = modulosConfig[modulo];
+        if (!config.submodulos) {
+            selecionarModulo(modulo);
+            return;
+        }
+
+        var html = '<div class="submodule-container">';
+        html += '<div class="submodule-title">Selecione o modelo de ' + config.nome + ':</div>';
+        html += '<div class="submodule-buttons">';
+
+        for (var nome in config.submodulos) {
+            html += '<div class="submodule-card" onclick="selecionarSubmodulo(\'' + modulo + '\', \'' + nome + '\')">';
+            html += '<img class="submodule-card-img" src="' + config.submodulos[nome] + '" alt="' + nome + '">';
+            html += '<div class="submodule-card-label">' + nome + '</div>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        html += '<div style="text-align: center; margin-top: 12px;"><button class="back-btn" onclick="voltarModulos()">← Voltar aos equipamentos</button></div>';
+        html += '</div>';
+
+        moduleButtonsContainer.innerHTML = html;
+        hintText.innerHTML = '<strong>' + config.nome + '</strong> - Escolha o modelo do equipamento:';
+        scrollChat();
+    }
+
+    function voltarModulos() {
+        moduleButtonsContainer.innerHTML = gerarBotoesModulos();
+        hintText.textContent = "Selecione abaixo o equipamento sobre o qual deseja suporte:";
+        scrollChat();
+    }
+
+    function gerarBotoesModulos() {
+        return '<div class="module-buttons" id="mainModuleButtons">' +
+            '<div class="module-card airplus" onclick="selecionarModulo(\'airplus\')">' +
+                '<img class="module-card-img" src="https://img.directindustry.com/pt/images_di/photo-g/34409-10167740.webp" alt="AIRplus">' +
+                '<div class="module-card-label">AIRplus</div>' +
+            '</div>' +
+            '<div class="module-card airmove" onclick="mostrarSubmodulos(\'airmove\')">' +
+                '<img class="module-card-img" src="https://www.storopack.com.br/fileadmin/_processed_/7/e/csm_PP_AP_AIRmove___machine_front_motive2_cushion_film_low_res_300dpi_061fd19c2b.jpg" alt="AIRmove">' +
+                '<div class="module-card-label">AIRmove</div>' +
+            '</div>' +
+            '<div class="module-card paperplus" onclick="mostrarSubmodulos(\'paperplus\')">' +
+                '<img class="module-card-img" src="https://www.storopack.com.br/fileadmin/_processed_/1/e/csm_PP_PP_Classic_CX_machine_0539_1280x580px_EUROPEAN_STAND_b213d265e2.png" alt="PAPERplus">' +
+                '<div class="module-card-label">PAPERplus</div>' +
+            '</div>' +
+            '<div class="module-card foamplus" onclick="mostrarSubmodulos(\'foamplus\')">' +
+                '<img class="module-card-img" src="https://www.storopack.com.br/fileadmin/_processed_/1/9/csm_PP_FP_Bag_Packer3_machine_6327_1280x580px_277b779f5d.png" alt="FOAMplus">' +
+                '<div class="module-card-label">FOAMplus</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function selecionarSubmodulo(modulo, submodulo) {
         moduloAtivo = modulo;
+        submoduloAtivo = submodulo;
         var config = modulosConfig[modulo];
 
-        // Esconder botões de módulo
         moduleButtonsContainer.style.display = "none";
 
-        // Mostrar badge do módulo ativo
+        var nomeCompleto = config.nome + " " + submodulo;
         moduleBadge.className = "module-badge active " + config.cor;
-        moduleBadgeText.textContent = "Modulo: " + config.nome;
+        moduleBadgeText.textContent = "Modulo: " + nomeCompleto;
 
-        // Atualizar hint e placeholder
-        hintText.innerHTML = "<strong>" + config.nome + "</strong> - " + config.hint;
-        input.placeholder = config.placeholder;
+        hintText.innerHTML = "<strong>" + nomeCompleto + "</strong> - " + config.hint;
+        input.placeholder = config.placeholder.replace(config.nome, nomeCompleto);
 
-        // Habilitar input e botão
         input.disabled = false;
         btnEnviar.disabled = false;
 
-        // Adicionar mensagem no chat
+        var divBot = document.createElement("div");
+        divBot.className = "msg-bot";
+        var spanBot = document.createElement("span");
+        spanBot.innerHTML = "Voce selecionou <strong>" + nomeCompleto + "</strong>. Como posso ajudar com esse equipamento?";
+        divBot.appendChild(spanBot);
+        chat.appendChild(divBot);
+        scrollChat();
+
+        input.focus();
+    }
+
+    function selecionarModulo(modulo) {
+        moduloAtivo = modulo;
+        submoduloAtivo = null;
+        var config = modulosConfig[modulo];
+
+        moduleButtonsContainer.style.display = "none";
+
+        moduleBadge.className = "module-badge active " + config.cor;
+        moduleBadgeText.textContent = "Modulo: " + config.nome;
+
+        hintText.innerHTML = "<strong>" + config.nome + "</strong> - " + config.hint;
+        input.placeholder = config.placeholder;
+
+        input.disabled = false;
+        btnEnviar.disabled = false;
+
         var divBot = document.createElement("div");
         divBot.className = "msg-bot";
         var spanBot = document.createElement("span");
@@ -703,17 +846,15 @@ HTML = r"""
         chat.appendChild(divBot);
         scrollChat();
 
-        // Focar no input
         input.focus();
     }
 
     function voltarInicio() {
         moduloAtivo = null;
+        submoduloAtivo = null;
 
-        // Limpar chat
         chat.innerHTML = "";
 
-        // Mensagem inicial
         var divBot = document.createElement("div");
         divBot.className = "msg-bot";
         var spanBot = document.createElement("span");
@@ -721,25 +862,16 @@ HTML = r"""
         divBot.appendChild(spanBot);
         chat.appendChild(divBot);
 
-        // Recriar botões de módulo
         var divBotoes = document.createElement("div");
         divBotoes.className = "msg-bot";
         divBotoes.id = "moduleButtonsContainer";
-        divBotoes.innerHTML = '<div class="module-buttons">' +
-            '<button class="module-btn airplus" onclick="selecionarModulo(\'airplus\')"><span class="icon">💨</span> AIRplus</button>' +
-            '<button class="module-btn paperplus" onclick="selecionarModulo(\'paperplus\')"><span class="icon">📄</span> PAPERplus</button>' +
-            '<button class="module-btn foamplus" onclick="selecionarModulo(\'foamplus\')"><span class="icon">🧽</span> FOAMplus</button>' +
-            '<button class="module-btn airmove" onclick="selecionarModulo(\'airmove\')"><span class="icon">📦</span> AIRmove</button>' +
-            '</div>';
+        divBotoes.innerHTML = gerarBotoesModulos();
         chat.appendChild(divBotoes);
 
-        // Atualizar referência
         moduleButtonsContainer = divBotoes;
 
-        // Esconder badge
         moduleBadge.className = "module-badge";
 
-        // Resetar hint e input
         hintText.textContent = "Selecione abaixo o equipamento sobre o qual deseja suporte:";
         input.placeholder = "Primeiro, selecione um equipamento acima...";
         input.disabled = true;
@@ -941,10 +1073,16 @@ HTML = r"""
             scrollChat();
         };
 
-        // Envia mensagem COM o módulo ativo
+        // Envia módulo e submódulo
+        var moduloEnviar = moduloAtivo;
+        if (submoduloAtivo) {
+            moduloEnviar = moduloAtivo + "_" + submoduloAtivo.toLowerCase().replace(/ /g, "_");
+        }
+
         xhr.send(JSON.stringify({ 
             mensagem: mensagem,
-            modulo: moduloAtivo 
+            modulo: moduloEnviar,
+            submodulo: submoduloAtivo
         }));
     });
 </script>
@@ -965,12 +1103,12 @@ def chat():
     try:
         dados = request.get_json()
         mensagem = dados.get("mensagem", "").strip()
-        modulo = dados.get("modulo", "").strip()  # Recebe o módulo ativo
+        modulo = dados.get("modulo", "").strip()
+        submodulo = dados.get("submodulo", "")
 
         if not mensagem:
             return jsonify({"resposta": "Por favor, envie uma mensagem."}), 400
 
-        # Passa o módulo para o assistente
         resposta = responder_cliente(mensagem, modulo=modulo)
         return jsonify({"resposta": resposta}), 200
 
