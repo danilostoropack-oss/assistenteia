@@ -1,4 +1,3 @@
-from flask import Flask, session, request, jsonify, render_template_string
 from openai import OpenAI, RateLimitError
 from dotenv import load_dotenv
 import os
@@ -7,9 +6,6 @@ import os
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-app = Flask(__name__)
-app.secret_key = "storopack_secret_key"
 
 # ============================ DADOS FIXOS ============================
 
@@ -44,17 +40,63 @@ VIDEOS_STOROPACK = {
     }
 }
 
-# Palavras que ligam a Storopack de forma geral (quando não há módulo)
-ALLOWED_KEYWORDS_GLOBAL = [
-    "storopack", "airplus", "airmove", "paperplus", "foamplus", "paperbubble",
-    "embalagem", "proteção", "protecao", "jurubatuba", "coleta", "pallet",
-    "saquinho", "travesseiro", "bolha", "cushion", "void", "bubble", "filme", "bobina",
-    "erro", "manutencao", "manutenção", "ajuste", "parada automática", "parada automatica"
-]
+# Configurações específicas de cada módulo
+MODULOS_CONFIG = {
+    "airplus": {
+        "nome": "AIRplus",
+        "descricao": "Travesseiros de ar (VOID, BUBBLE, CUSHION, WRAP)",
+        "keywords": ["airplus", "void", "bubble", "cushion", "wrap", "travesseiro", "ar", "inflável", "inflar", "almofada de ar"],
+        "prompt_extra": """
+FOCO: Equipamentos AIRplus (VOID, BUBBLE, CUSHION, WRAP).
+- Travesseiros de ar para preenchimento de vazios
+- Diferentes modelos de almofadas
+- Bobinas e filmes AIRplus
+- Erros comuns: E1, E2, E3, E4, etc.
+- Manutenção: troca de bobina, regulagem de selagem, limpeza de sensores
+"""
+    },
+    "paperplus": {
+        "nome": "PAPERplus",
+        "descricao": "Papel de proteção (Classic, Track, Papillon, PAPERbubble)",
+        "keywords": ["paperplus", "papel", "paper", "classic", "track", "papillon", "paperbubble", "kraft", "reciclado"],
+        "prompt_extra": """
+FOCO: Equipamentos PAPERplus (Classic, Track, Papillon) e PAPERbubble.
+- Papel kraft para proteção e preenchimento
+- Diferentes gramagens e larguras
+- Manutenção: troca de bobina de papel, ajuste de corte, tensão do papel
+- Problemas comuns: papel preso, corte irregular, travamento
+"""
+    },
+    "foamplus": {
+        "nome": "FOAMplus",
+        "descricao": "Espuma expandida (Bagpacker, Handpacker)",
+        "keywords": ["foamplus", "foam", "espuma", "bagpacker", "handpacker", "poliuretano", "expansão", "química"],
+        "prompt_extra": """
+FOCO: Equipamentos FOAMplus (Bagpacker, Handpacker).
+- Espuma de poliuretano expandida in-loco
+- Proteção moldada ao produto
+- Manutenção: limpeza de bicos, proporção química, temperatura
+- Problemas comuns: espuma não expande, vazamento, entupimento
+- IMPORTANTE: Sempre alertar sobre uso de EPIs (luvas, óculos)
+"""
+    },
+    "airmove": {
+        "nome": "AIRmove",
+        "descricao": "Linha compacta de travesseiros de ar",
+        "keywords": ["airmove", "compacto", "portátil", "move", "pequeno"],
+        "prompt_extra": """
+FOCO: Equipamento AIRmove (linha compacta).
+- Versão compacta para menor volume de produção
+- Travesseiros de ar em formato menor
+- Ideal para e-commerce e pequenas operações
+- Manutenção similar ao AIRplus, porém simplificada
+"""
+    }
+}
 
-# ============================ PROMPT DO ASSISTENTE =====================
+# ============================ PROMPT BASE ============================
 
-ASSISTANT_PROMPT = f"""
+ASSISTANT_PROMPT_BASE = f"""
 Você é o Assistente Oficial da STOROpack Brasil, focado em orientar clientes sobre:
 
 • Equipamentos: AIRplus (VOID, BUBBLE, CUSHION, WRAP), AIRmove, PAPERplus Classic, PAPERplus Track, PAPERplus Papillon, PAPERbubble, FOAMplus.
@@ -88,21 +130,14 @@ ESTILO DE COMUNICAÇÃO:
 • Use listas numeradas quando for procedimento passo a passo.
 • Pode usar 1 emoji discreto (🙂) quando fizer sentido.
 • Não invente dados técnicos que não sabe.
-
-FORA DO ESCOPO:
-Se a pergunta não tiver relação com STOROpack, equipamentos ou materiais de embalagem:
-"Posso ajudar só em assuntos técnicos, logísticos e comerciais da STOROpack."
 """
 
 # ============================ FUNÇÕES AUXILIARES ============================
 
-def esta_no_escopo_global(texto: str) -> bool:
-    t = texto.lower()
-    return any(k in t for k in ALLOWED_KEYWORDS_GLOBAL)
-
 def limpar_formatacao(texto: str) -> str:
-    # Remove marcações simples de markdown para ficar mais "WhatsApp"
+    """Remove marcações simples de markdown para ficar mais limpo."""
     return texto.replace("**", "").replace("*", "")
+
 
 def encontrar_videos(pergunta: str, modulo: str | None) -> list[dict]:
     """Retorna vídeos relevantes baseados primeiro no módulo, depois no texto."""
@@ -123,26 +158,97 @@ def encontrar_videos(pergunta: str, modulo: str | None) -> list[dict]:
 
     return videos[:2]
 
+
+def verificar_escopo_modulo(pergunta: str, modulo: str) -> bool:
+    """
+    Verifica se a pergunta está relacionada ao módulo selecionado.
+    Retorna True se está no escopo, False se parece ser sobre outro módulo.
+    """
+    pergunta_lower = pergunta.lower()
+    
+    # Palavras que indicam outro módulo
+    outros_modulos = {k: v for k, v in MODULOS_CONFIG.items() if k != modulo}
+    
+    for outro_modulo, config in outros_modulos.items():
+        # Verifica se menciona explicitamente outro módulo
+        if outro_modulo in pergunta_lower:
+            return False
+        # Verifica keywords específicas de outro módulo
+        for keyword in config["keywords"]:
+            if keyword in pergunta_lower and keyword not in MODULOS_CONFIG[modulo]["keywords"]:
+                return False
+    
+    return True
+
+
+def montar_prompt_modulo(modulo: str) -> str:
+    """Monta o prompt específico para o módulo selecionado."""
+    config = MODULOS_CONFIG.get(modulo)
+    
+    if not config:
+        return ASSISTANT_PROMPT_BASE
+    
+    prompt_modulo = f"""
+{ASSISTANT_PROMPT_BASE}
+
+═══════════════════════════════════════════════════════
+MÓDULO ATIVO: {config['nome']} - {config['descricao']}
+═══════════════════════════════════════════════════════
+{config['prompt_extra']}
+
+IMPORTANTE:
+- Você está atendendo ESPECIFICAMENTE sobre {config['nome']}.
+- Foque suas respostas neste equipamento/linha de produtos.
+- Se o cliente perguntar sobre OUTRO equipamento (que não seja {config['nome']}), 
+  responda educadamente: "Você está no módulo {config['nome']}. Para dúvidas sobre 
+  outros equipamentos, por favor volte ao menu inicial e selecione o módulo correto."
+"""
+    return prompt_modulo
+
+
+# ============================ FUNÇÃO PRINCIPAL ============================
+
 def responder_cliente(pergunta: str, modulo: str | None = None) -> str:
+    """
+    Responde ao cliente baseado no módulo selecionado.
+    
+    Args:
+        pergunta: A pergunta do usuário
+        modulo: O módulo ativo (airplus, paperplus, foamplus, airmove) - em minúsculo
+    
+    Returns:
+        Resposta do assistente
+    """
     pergunta = (pergunta or "").strip()
 
     if not pergunta:
         return "Oi! Como posso te ajudar hoje? 🙂"
 
-    # Sem módulo: valida se está no escopo geral
-    if not modulo and not esta_no_escopo_global(pergunta):
-        return "Posso ajudar apenas com assuntos técnicos, comerciais ou logísticos da STOROpack."
+    # Se não tem módulo, não deveria chegar aqui (interface bloqueia)
+    # Mas por segurança, retorna mensagem padrão
+    if not modulo:
+        return "Por favor, selecione um equipamento no menu para começarmos. 🙂"
 
-    # Monta contexto de módulo para o modelo
-    contexto_modulo = ""
-    if modulo:
-        contexto_modulo = f"\n\nMÓDULO ATUAL: {modulo}."
+    # Normaliza o módulo para minúsculo
+    modulo = modulo.lower()
+
+    # Verifica se a pergunta está no escopo do módulo
+    if not verificar_escopo_modulo(pergunta, modulo):
+        nome_modulo = MODULOS_CONFIG.get(modulo, {}).get("nome", modulo.upper())
+        return (
+            f"Você está no módulo {nome_modulo}. "
+            f"Para dúvidas sobre outros equipamentos, por favor clique em 'Voltar' "
+            f"e selecione o módulo correto. 🙂"
+        )
+
+    # Monta o prompt específico do módulo
+    prompt_sistema = montar_prompt_modulo(modulo)
 
     try:
         resposta = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": ASSISTANT_PROMPT + contexto_modulo},
+                {"role": "system", "content": prompt_sistema},
                 {"role": "user", "content": pergunta}
             ],
             max_tokens=500,
@@ -150,6 +256,8 @@ def responder_cliente(pergunta: str, modulo: str | None = None) -> str:
         )
 
         texto = limpar_formatacao(resposta.choices[0].message.content)
+        
+        # Busca vídeos relevantes
         videos = encontrar_videos(pergunta, modulo)
 
         if videos:
@@ -163,174 +271,3 @@ def responder_cliente(pergunta: str, modulo: str | None = None) -> str:
         return "Limite da API foi atingido. Tente novamente em alguns instantes."
     except Exception as e:
         return f"Erro ao acessar serviço: {e}"
-
-# ============================ FRONT HTML ============================
-
-HTML_PAGE = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Assistente STOROpack</title>
-
-<style>
-body { font-family: Arial; max-width: 720px; margin: auto; }
-.chat { border: 1px solid #ccc; height: 470px; padding: 10px; overflow-y: auto; border-radius: 6px; }
-.msg-user { text-align: right; margin: 8px 0; }
-.msg-bot { text-align: left; margin: 8px 0; }
-.msg-user span { background: #DCF8C6; padding: 8px 12px; border-radius: 8px; display: inline-block; }
-.msg-bot span { background: #eee; padding: 8px 12px; border-radius: 8px; display: inline-block; }
-button { margin: 4px; padding: 6px 12px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; }
-#msg { padding: 6px; }
-.top-bar { margin-bottom: 8px; }
-.info-modulo { font-size: 0.9rem; color: #555; margin-bottom: 8px; }
-</style>
-
-</head>
-<body>
-
-<h2>Assistente STOROpack</h2>
-
-<div class="top-bar">
-    <button onclick="selecionarModulo('AIRplus')">AIRplus</button>
-    <button onclick="selecionarModulo('AIRmove')">AIRmove</button>
-    <button onclick="selecionarModulo('PAPERplus')">PAPERplus</button>
-    <button onclick="selecionarModulo('FOAMplus')">FOAMplus</button>
-    <button onclick="voltarMenu()">Voltar ao Menu</button>
-</div>
-
-<div class="info-modulo" id="info-modulo">
-    Nenhum módulo selecionado. Você pode escolher uma linha acima ou simplesmente mandar sua dúvida.
-</div>
-
-<div class="chat" id="chat">
-    <div class="msg-bot"><span>Bom dia! Em que posso ajudar hoje? 🙂</span></div>
-</div>
-
-<br>
-
-<input type="text" id="msg" placeholder="Digite sua mensagem..." style="width:80%">
-<button onclick="enviar()">Enviar</button>
-
-<script>
-function addUser(msg){
-    let c = document.getElementById("chat");
-    c.innerHTML += "<div class='msg-user'><span>"+escapeHtml(msg)+"</span></div>";
-    c.scrollTop = c.scrollHeight;
-}
-
-function addBot(msg){
-    let c = document.getElementById("chat");
-    msg = escapeHtml(msg).replace(/\n/g,"<br>");
-    c.innerHTML += "<div class='msg-bot'><span>"+msg+"</span></div>";
-    c.scrollTop = c.scrollHeight;
-}
-
-function setInfoModulo(texto){
-    document.getElementById("info-modulo").innerText = texto;
-}
-
-function escapeHtml(texto){
-    return texto
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-}
-
-async function selecionarModulo(modulo){
-    const r = await fetch("/api/modulo", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ modulo })
-    });
-
-    const data = await r.json();
-    setInfoModulo(data.modulo_texto);
-    addBot(data.resposta);
-}
-
-async function voltarMenu(){
-    const r = await fetch("/api/voltar", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:"{}"
-    });
-
-    const data = await r.json();
-    setInfoModulo(data.modulo_texto);
-    addBot(data.resposta);
-}
-
-async function enviar(){
-    const campo = document.getElementById("msg");
-    const texto = campo.value.trim();
-    if(!texto) return;
-
-    addUser(texto);
-    campo.value = "";
-
-    const r = await fetch("/api/msg", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ mensagem:texto })
-    });
-
-    const data = await r.json();
-    addBot(data.resposta);
-}
-</script>
-
-</body>
-</html>
-"""
-
-# ============================ ROTAS FLASK ============================
-
-@app.route("/")
-def index():
-    return render_template_string(HTML_PAGE)
-
-@app.route("/api/modulo", methods=["POST"])
-def api_modulo():
-    data = request.get_json()
-    modulo = data.get("modulo")
-    session["modulo"] = modulo
-
-    texto_modulo = ""
-    if modulo == "AIRplus":
-        texto_modulo = "Módulo atual: AIRplus (travesseiros de ar: VOID, BUBBLE, CUSHION, WRAP)."
-    elif modulo == "AIRmove":
-        texto_modulo = "Módulo atual: AIRmove (linha compacta de travesseiros de ar)."
-    elif modulo == "PAPERplus":
-        texto_modulo = "Módulo atual: PAPERplus (Classic, Track, Papillon e PAPERbubble)."
-    elif modulo == "FOAMplus":
-        texto_modulo = "Módulo atual: FOAMplus (espuma expandida, Bagpacker, Handpacker)."
-    else:
-        texto_modulo = "Nenhum módulo selecionado."
-
-    resposta = f"Beleza! Vamos falar sobre {modulo}. Pode mandar sua dúvida 🙂"
-    return jsonify({"resposta": resposta, "modulo_texto": texto_modulo})
-
-@app.route("/api/voltar", methods=["POST"])
-def api_voltar():
-    session["modulo"] = None
-    resposta = (
-        "Voltei para o menu principal.\n\n"
-        "Agora você pode escolher outra solução nos botões acima "
-        "ou mandar uma dúvida geral sobre Storopack."
-    )
-    texto_modulo = "Nenhum módulo selecionado. Você pode escolher uma linha acima ou mandar sua dúvida."
-    return jsonify({"resposta": resposta, "modulo_texto": texto_modulo})
-
-@app.route("/api/msg", methods=["POST"])
-def api_msg():
-    data = request.get_json()
-    texto = data.get("mensagem", "")
-    modulo = session.get("modulo")
-    resposta = responder_cliente(texto, modulo)
-    return jsonify({"resposta": resposta})
-
-# ============================ RUN ============================
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)

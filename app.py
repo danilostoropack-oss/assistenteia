@@ -171,7 +171,6 @@ HTML = r"""
             line-height: 1.35;
         }
 
-        /* degradê azul -> azul marinho */
         .msg-user span {
             background: linear-gradient(to right, #0ea5e9, #003066);
             color: white;
@@ -195,6 +194,96 @@ HTML = r"""
             color: var(--sp-primary-dark);
         }
 
+        /* Estilos dos botões de módulo */
+        .module-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .module-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-btn.airplus {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .module-btn.paperplus {
+            background: linear-gradient(135deg, #84cc16, #65a30d);
+            color: white;
+        }
+
+        .module-btn.foamplus {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+        }
+
+        .module-btn.airmove {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .module-btn .icon {
+            font-size: 18px;
+        }
+
+        /* Badge do módulo ativo */
+        .module-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .module-badge.active {
+            display: inline-flex;
+        }
+
+        .module-badge.airplus { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .module-badge.paperplus { background: linear-gradient(135deg, #84cc16, #65a30d); }
+        .module-badge.foamplus { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .module-badge.airmove { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+        .back-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #dc2626;
+        }
+
         form { display: flex; gap: 8px; margin-top: 6px; }
         
         #mensagem {
@@ -212,6 +301,11 @@ HTML = r"""
         #mensagem:focus {
             border-color: var(--sp-primary);
             box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.18);
+        }
+
+        #mensagem:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
         }
 
         button[type="submit"] {
@@ -234,6 +328,12 @@ HTML = r"""
         button[type="submit"]:hover {
             background: var(--sp-primary-dark);
             transform: translateY(-1px);
+        }
+
+        button[type="submit"]:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .helper-text { font-size: 12px; color: #6b7280; }
@@ -434,6 +534,15 @@ HTML = r"""
             .assistant-illustration img {
                 max-width: 280px;
             }
+
+            .module-buttons {
+                flex-direction: column;
+            }
+
+            .module-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -463,18 +572,42 @@ HTML = r"""
         <div style="position: relative; z-index: 1;">
             <h1>Central de Suporte Storopack</h1>
             <p class="subtitle">Atendimento inteligente para duvidas tecnicas sobre equipamentos e solucoes de protecao.</p>
-            <p class="hint">Exemplo de pergunta: <strong>Minha AIRplus esta com erro E3, como posso resolver?</strong></p>
+            
+            <!-- Badge do módulo ativo -->
+            <div id="moduleBadge" class="module-badge">
+                <span id="moduleBadgeText"></span>
+                <button class="back-btn" onclick="voltarInicio()">← Voltar</button>
+            </div>
+
+            <p class="hint" id="hintText">Selecione abaixo o equipamento sobre o qual deseja suporte:</p>
 
             <div class="chat-wrapper">
                 <div id="chat">
                     <div class="msg-bot">
                         <span>Ola! Sou o assistente tecnico da Storopack. Como posso te ajudar hoje?</span>
                     </div>
+                    <!-- Botões de módulo -->
+                    <div class="msg-bot" id="moduleButtonsContainer">
+                        <div class="module-buttons">
+                            <button class="module-btn airplus" onclick="selecionarModulo('airplus')">
+                                <span class="icon">💨</span> AIRplus
+                            </button>
+                            <button class="module-btn paperplus" onclick="selecionarModulo('paperplus')">
+                                <span class="icon">📄</span> PAPERplus
+                            </button>
+                            <button class="module-btn foamplus" onclick="selecionarModulo('foamplus')">
+                                <span class="icon">🧽</span> FOAMplus
+                            </button>
+                            <button class="module-btn airmove" onclick="selecionarModulo('airmove')">
+                                <span class="icon">📦</span> AIRmove
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <form id="form-chat">
-                    <input type="text" id="mensagem" autocomplete="off" placeholder="Descreva o problema, modelo do equipamento e codigo de erro, se houver...">
-                    <button type="submit">Enviar <span>➤</span></button>
+                    <input type="text" id="mensagem" autocomplete="off" placeholder="Primeiro, selecione um equipamento acima..." disabled>
+                    <button type="submit" id="btnEnviar" disabled>Enviar <span>➤</span></button>
                 </form>
                 <div class="helper-text">Por seguranca, nao compartilhe dados sensiveis. Este canal e exclusivo para suporte tecnico de equipamentos Storopack.</div>
             </div>
@@ -505,6 +638,116 @@ HTML = r"""
     var chat = document.getElementById("chat");
     var form = document.getElementById("form-chat");
     var input = document.getElementById("mensagem");
+    var btnEnviar = document.getElementById("btnEnviar");
+    var moduleBadge = document.getElementById("moduleBadge");
+    var moduleBadgeText = document.getElementById("moduleBadgeText");
+    var moduleButtonsContainer = document.getElementById("moduleButtonsContainer");
+    var hintText = document.getElementById("hintText");
+
+    // Módulo ativo atual
+    var moduloAtivo = null;
+
+    // Configurações dos módulos
+    var modulosConfig = {
+        airplus: {
+            nome: "AIRplus",
+            cor: "airplus",
+            placeholder: "Descreva seu problema com AIRplus (ex: erro E3, travamento, etc.)...",
+            hint: "Exemplo: Minha AIRplus esta com erro E3, como posso resolver?"
+        },
+        paperplus: {
+            nome: "PAPERplus",
+            cor: "paperplus",
+            placeholder: "Descreva seu problema com PAPERplus (ex: papel preso, corte irregular, etc.)...",
+            hint: "Exemplo: O papel esta prendendo na maquina PAPERplus, o que fazer?"
+        },
+        foamplus: {
+            nome: "FOAMplus",
+            cor: "foamplus",
+            placeholder: "Descreva seu problema com FOAMplus (ex: espuma nao expande, vazamento, etc.)...",
+            hint: "Exemplo: A espuma do FOAMplus nao esta expandindo corretamente."
+        },
+        airmove: {
+            nome: "AIRmove",
+            cor: "airmove",
+            placeholder: "Descreva seu problema com AIRmove (ex: almofada nao infla, sensor com defeito, etc.)...",
+            hint: "Exemplo: As almofadas do AIRmove nao estao inflando direito."
+        }
+    };
+
+    function selecionarModulo(modulo) {
+        moduloAtivo = modulo;
+        var config = modulosConfig[modulo];
+
+        // Esconder botões de módulo
+        moduleButtonsContainer.style.display = "none";
+
+        // Mostrar badge do módulo ativo
+        moduleBadge.className = "module-badge active " + config.cor;
+        moduleBadgeText.textContent = "Modulo: " + config.nome;
+
+        // Atualizar hint e placeholder
+        hintText.innerHTML = "<strong>" + config.nome + "</strong> - " + config.hint;
+        input.placeholder = config.placeholder;
+
+        // Habilitar input e botão
+        input.disabled = false;
+        btnEnviar.disabled = false;
+
+        // Adicionar mensagem no chat
+        var divBot = document.createElement("div");
+        divBot.className = "msg-bot";
+        var spanBot = document.createElement("span");
+        spanBot.innerHTML = "Voce selecionou <strong>" + config.nome + "</strong>. Como posso ajudar com esse equipamento?";
+        divBot.appendChild(spanBot);
+        chat.appendChild(divBot);
+        scrollChat();
+
+        // Focar no input
+        input.focus();
+    }
+
+    function voltarInicio() {
+        moduloAtivo = null;
+
+        // Limpar chat
+        chat.innerHTML = "";
+
+        // Mensagem inicial
+        var divBot = document.createElement("div");
+        divBot.className = "msg-bot";
+        var spanBot = document.createElement("span");
+        spanBot.textContent = "Ola! Sou o assistente tecnico da Storopack. Como posso te ajudar hoje?";
+        divBot.appendChild(spanBot);
+        chat.appendChild(divBot);
+
+        // Recriar botões de módulo
+        var divBotoes = document.createElement("div");
+        divBotoes.className = "msg-bot";
+        divBotoes.id = "moduleButtonsContainer";
+        divBotoes.innerHTML = '<div class="module-buttons">' +
+            '<button class="module-btn airplus" onclick="selecionarModulo(\'airplus\')"><span class="icon">💨</span> AIRplus</button>' +
+            '<button class="module-btn paperplus" onclick="selecionarModulo(\'paperplus\')"><span class="icon">📄</span> PAPERplus</button>' +
+            '<button class="module-btn foamplus" onclick="selecionarModulo(\'foamplus\')"><span class="icon">🧽</span> FOAMplus</button>' +
+            '<button class="module-btn airmove" onclick="selecionarModulo(\'airmove\')"><span class="icon">📦</span> AIRmove</button>' +
+            '</div>';
+        chat.appendChild(divBotoes);
+
+        // Atualizar referência
+        moduleButtonsContainer = divBotoes;
+
+        // Esconder badge
+        moduleBadge.className = "module-badge";
+
+        // Resetar hint e input
+        hintText.textContent = "Selecione abaixo o equipamento sobre o qual deseja suporte:";
+        input.placeholder = "Primeiro, selecione um equipamento acima...";
+        input.disabled = true;
+        btnEnviar.disabled = true;
+        input.value = "";
+
+        scrollChat();
+    }
 
     function escapeHtml(text) {
         var div = document.createElement("div");
@@ -597,6 +840,11 @@ HTML = r"""
 
     form.addEventListener("submit", function(e) {
         e.preventDefault();
+
+        if (!moduloAtivo) {
+            alert("Por favor, selecione um equipamento primeiro.");
+            return;
+        }
 
         var mensagem = input.value.trim();
         if (!mensagem) return;
@@ -693,7 +941,11 @@ HTML = r"""
             scrollChat();
         };
 
-        xhr.send(JSON.stringify({ mensagem: mensagem }));
+        // Envia mensagem COM o módulo ativo
+        xhr.send(JSON.stringify({ 
+            mensagem: mensagem,
+            modulo: moduloAtivo 
+        }));
     });
 </script>
 </body>
@@ -713,11 +965,13 @@ def chat():
     try:
         dados = request.get_json()
         mensagem = dados.get("mensagem", "").strip()
+        modulo = dados.get("modulo", "").strip()  # Recebe o módulo ativo
 
         if not mensagem:
             return jsonify({"resposta": "Por favor, envie uma mensagem."}), 400
 
-        resposta = responder_cliente(mensagem)
+        # Passa o módulo para o assistente
+        resposta = responder_cliente(mensagem, modulo=modulo)
         return jsonify({"resposta": resposta}), 200
 
     except Exception as e:
