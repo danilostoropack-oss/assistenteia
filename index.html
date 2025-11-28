@@ -229,6 +229,9 @@
         .btn-analyze:hover { background: #059669; }
         .btn-analyze:disabled { background: #ccc; cursor: not-allowed; }
 
+        .input-area { display: none; }
+        .input-area.show { display: block; }
+
         .illustration { text-align: center; }
         .illustration img { width: 100%; max-width: 350px; border-radius: 12px; }
         .illustration .pill {
@@ -285,6 +288,7 @@
 
                 <div class="chat" id="chat"></div>
 
+                <div class="input-area" id="inputArea">
                 <div class="video-preview" id="videoPreview">
                     <div class="video-header">
                         <span>📹 Vídeo selecionado</span>
@@ -301,6 +305,7 @@
                     <button class="btn btn-primary" id="btnSend" disabled>Enviar ➤</button>
                 </div>
                 <div class="tip">💡 Envie um vídeo do erro para análise automática pela IA!</div>
+                </div>
             </div>
 
             <div class="illustration">
@@ -331,6 +336,7 @@ var btnAnalyze = document.getElementById('btnAnalyze');
 var badge = document.getElementById('badge');
 var badgeText = document.getElementById('badgeText');
 var hint = document.getElementById('hint');
+var inputArea = document.getElementById('inputArea');
 
 var videoFile = null;
 
@@ -461,6 +467,7 @@ function ativarModulo(key, sub) {
     msgInput.placeholder = 'Descreva o problema (ex: erro E3, travamento...)';
     btnSend.disabled = false;
     btnVideo.disabled = false;
+    inputArea.className = 'input-area show';
     
     chat.innerHTML = '';
     addMsg('Você selecionou <b>' + nome + '</b>.\n\n📹 Envie um vídeo do erro OU descreva o problema.');
@@ -534,6 +541,7 @@ function voltar() {
     msgInput.value = '';
     btnSend.disabled = true;
     btnVideo.disabled = true;
+    inputArea.className = 'input-area';
     
     chat.innerHTML = '';
     addMsg('Olá! Sou o assistente técnico da Storopack. Como posso ajudar?');
