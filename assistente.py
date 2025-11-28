@@ -1,213 +1,353 @@
+from flask import Flask, session, request, jsonify, render_template_string
 from openai import OpenAI, RateLimitError
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# ============================ CONFIG ============================
 
+load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ===================== BIBLIOTECA DE VÍDEOS =====================
+app = Flask(__name__)
+app.secret_key = "storopack_secret_key"
+
+# ============================ DADOS FIXOS ============================
+
+CONTATO_EMAIL = "packaging.br@storopack.com"
+CONTATO_TELEFONE = "(11) 5677-4699"
+
+LOGISTICA_STOROPACK = {
+    "endereco": "R. Agostino Togneri, 457 - Jurubatuba, São Paulo - SP, 04690-090",
+    "horario": "09:00 às 12:00 e 13:00 às 16:00 (intervalo 12h–13h)"
+}
 
 VIDEOS_STOROPACK = {
     "airplus": {
         "titulo": "AIRplus - Travesseiro de Ar",
-        "url": "https://www.youtube.com/watch?v=IbG1o-UbrtI&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=8&t=4s&pp=iAQB",
+        "url": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
+    },
+    "airmove": {
+        "titulo": "AIRmove - Travesseiros de Ar (linha compacta)",
+        "url": "https://www.youtube.com/watch?v=IbG1o-UbrtI"  # ajuste se tiver vídeo específico
     },
     "paperplus": {
         "titulo": "PAPERplus - Papel de Proteção",
-        "url": "https://www.youtube.com/watch?v=a8iCa46yRu4&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=7&pp=iAQB",
+        "url": "https://www.youtube.com/watch?v=a8iCa46yRu4"
     },
     "foamplus": {
         "titulo": "FOAMplus - Espuma Expandida",
-        "url": "https://www.youtube.com/watch?v=bhVK8KCJihs&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=11&t=2s&pp=iAQB",
+        "url": "https://www.youtube.com/watch?v=bhVK8KCJihs"
     },
     "paperbubble": {
         "titulo": "PAPERbubble - Papel Almofadado",
-        "url": "https://www.youtube.com/watch?v=TQYRcHj_v0E&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=3&pp=iAQB",
-    },
-    "storopack": {
-        "titulo": "Visão Geral STOROpack",
-        "url": "https://www.youtube.com/watch?v=wa4ZO1Z3g2Q&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=5&pp=iAQB",
-    },
-    "plasticos": {
-        "titulo": "Plásticos - Filmes de Proteção",
-        "url": "https://www.youtube.com/watch?v=suKamjQtuGI&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=4&pp=iAQB",
-    },
-    "processo": {
-        "titulo": "Processo de Embalagens STOROpack",
-        "url": "https://www.youtube.com/watch?v=Vq1Wt_mUWQs&list=PL5I2gNhCWwVIBUHXh4jHOKDU1RxAs6LHx&index=6&pp=iAQB",
-    },
+        "url": "https://www.youtube.com/watch?v=TQYRcHj_v0E"
+    }
 }
 
-# ===================== PROMPT DO ASSISTENTE (OTIMIZADO) =====================
-
-ASSISTANT_PROMPT = """
-Você é um assistente técnico da STOROpack Brasil. Ajude com equipamentos de proteção, 
-processos de embalagem e soluções de proteção de produtos.
-
-ESCOPO (responda apenas sobre):
-• Equipamentos STOROpack (AIRplus, PAPERplus, FOAMplus, AIRmove, PAPERbubble)
-• Materiais de proteção (papel, espuma, filmes, almofadas de ar)
-• Problemas técnicos, erros de máquina, ajustes e manutenção
-• Processos de embalagem, cubagem e otimizações
-• Aplicações e recomendações comerciais
-
-FORA DO ESCOPO (responda apenas isto):
-"Posso ajudar só em assuntos técnicos e comerciais da Storopack. Envie sua dúvida sobre 
-equipamentos, materiais ou processos de embalagem."
-
-INSTRUÇÕES:
-- Responda em português do Brasil, natural e conversacional
-- Seja direto e resumido. Máximo 3-4 linhas por resposta principal
-- Evite emojis, markdown excessivo ou formatações chamativas
-- Se precisar listar passos, use números simples (1. 2. 3.)
-- Se for orientar troca de peças, sempre avise: "Desligue o equipamento antes"
-- Nunca mencione nomes de pessoas ou colegas
-- Não invente códigos de erro ou especificações
-
-TRATAMENTO DE PROBLEMAS:
-- Pergunte detalhes sobre o problema (máquina, modelo, situação)
-- Ofereça soluções práticas e rápidas
-- Se for manutenção, sempre oriente sobre segurança primeiro
-"""
-
-# ===================== PALAVRAS-CHAVE OTIMIZADAS =====================
-
-ALLOWED_KEYWORDS = [
-    # Marca e variações
-    "storopack", "storo", "storo pack", "storo-pack",
-
-    # Produtos principais
-    "airplus", "air plus", "airplus bubble", "airplus cushion", "airplus void",
-    "paperplus", "paper plus", "papillon", "classic",
-    "foamplus", "foam plus", "bagpacker", "handpacker",
-    "airmove", "airmove2", "airmove²", "airmove¹", "air move",
-    "paperbubble", "paper bubble", "pillowpack",
-
-    # Materiais
-    "travesseiro", "almofada", "almofadado", "air pillow", "air cushion",
-    "papel kraft", "papel proteção", "papel expandido", "papel cushion",
-    "espuma", "foam", "poliuretano", "expandida",
-    "filme", "filme plastico", "filme plástico", "filme reciclado", "filme compostavel",
-    "void fill", "preenchimento", "amortecimento", "cushion",
-
-    # Problemas comuns
-    "erro", "error", "code", "codigo", "alarme", "alerta", "avaria", "defeito",
-    "travado", "preso", "desalinhado", "desalinha", "entupido", "entupimento",
-    "vazamento", "ar", "pressão", "pressao", "fraco", "nao funciona", "não funciona",
-    "quebrou", "queimou", "nao liga", "não liga", "faz barulho", "ruido", "ruído",
-    "pulsa", "falha", "intermitente", "parou", "trava",
-
-    # Erros específicos (E-xx)
-    "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9",
-    "e10", "e11", "e12", "e13", "e14", "e15", "e20", "e25", "e30",
-    "erro e", "erro 1", "erro 2", "código de erro", "codigo de erro",
-
-    # Componentes e manutenção
-    "sensor", "lâmina", "lamina", "rolo", "bobina", "teflon", "tubo", "mangueira",
-    "válvula", "valvula", "motor", "fusivel", "fusível", "varistor",
-    "injetor", "injector", "sealing", "selo", "heat seal", "selagem",
-    "tensão", "tensao", "ajuste", "aperto", "parafuso", "porca",
-    "óleo", "oleo", "lubrificante", "limpeza", "pó", "po", "poeira",
-
-    # Manutenção e cuidados
-    "manutencao", "manutenção", "troca de peça", "substituição", "reparo",
-    "conserto", "ajuste", "regulagem", "limpeza", "inspeção", "inspecao",
-
-    # Processos
-    "embalagem", "embalar", "acondicionamento", "proteção", "protecao", "proteger",
-    "expedição", "expedicao", "envio", "transporte", "logistica", "logística",
-    "packing", "fulfillment", "cubagem", "armazém", "armazem", "estoque",
-    "linha", "bancada", "bench", "bench de embalagem",
-
-    # Qualidade e otimização
-    "qualidade", "quebra", "dano", "danificado", "fragil", "frágil", "impacto",
-    "otimizar", "reduzir", "diminuir", "melhorar", "eficiência", "eficiencia",
-    "produtividade", "velocidade", "ergonomia", "economia",
-
-    # Sustentabilidade
-    "reciclado", "reciclado 30%", "biodegradavel", "biodegradável", "compostavel", "compostável",
-    "sustentável", "sustentavel", "eco", "ecológico", "ecologico",
-
-    # Genéricos relacionados
-    "como usar", "como funciona", "de que serve", "qual a diferença", "recomenda",
-    "aplicação", "aplicacao", "uso", "tutorial", "video", "vídeo",
-    "manual", "especificação", "especificacao", "tabela", "preço", "preco",
+# Palavras que ligam a Storopack de forma geral (quando não há módulo)
+ALLOWED_KEYWORDS_GLOBAL = [
+    "storopack", "airplus", "airmove", "paperplus", "foamplus", "paperbubble",
+    "embalagem", "proteção", "protecao", "jurubatuba", "coleta", "pallet",
+    "saquinho", "travesseiro", "bolha", "cushion", "void", "bubble", "filme", "bobina",
+    "erro", "manutencao", "manutenção", "ajuste", "parada automática", "parada automatica"
 ]
 
-def _esta_no_escopo(pergunta: str) -> bool:
-    """Retorna True se a pergunta está ligada a Storopack/embalagens."""
-    lower = pergunta.lower()
-    return any(palavra in lower for palavra in ALLOWED_KEYWORDS)
+# Palavras específicas por módulo (pra reforçar o foco, se você quiser usar depois)
+MODULE_KEYWORDS = {
+    "AIRplus": ["airplus", "travesseiro", "void", "bubble", "cushion", "wrap", "filme de ar", "almofada de ar"],
+    "AIRmove": ["airmove", "airmove²", "air move", "bobina compacta", "máquina pequena", "mini travesseiro"],
+    "PAPERplus": ["paperplus", "papel", "papillon", "classic", "track", "paper bubble", "paperbubble"],
+    "FOAMplus": ["foamplus", "espuma", "foam", "bagpacker", "handpacker", "espuma expandida"]
+}
 
+# ============================ PROMPT BASE ============================
 
-def _encontrar_videos_relevantes(pergunta: str) -> list:
-    """Busca vídeos relevantes baseado na pergunta."""
-    lower = pergunta.lower()
-    videos_encontrados = []
-    
-    palavras_chave_video = {
-        "airplus": "airplus",
-        "paperplus": "paperplus",
-        "foamplus": "foamplus",
-        "paperbubble": "paperbubble",
-        "storopack": "storopack",
-        "plastico": "plasticos",
-        "filme": "plasticos",
-        "processo": "processo",
-    }
-    
-    for termo, chave in palavras_chave_video.items():
-        if termo in lower and chave in VIDEOS_STOROPACK:
-            videos_encontrados.append(VIDEOS_STOROPACK[chave])
-    
-    return videos_encontrados[:2]
+ASSISTANT_PROMPT = f"""
+Você é o Assistente Oficial da STOROpack Brasil.
 
+O que você pode ajudar:
+• Dúvidas sobre AIRplus, AIRmove, PAPERplus, FOAMplus e PAPERbubble.
+• Manutenção simples, erros, operação e ajustes.
+• Vídeos de suporte.
+• Logística e endereço da unidade de Jurubatuba.
+• Contato oficial da empresa.
 
-def _formatar_resposta(texto_ia: str, videos: list) -> str:
-    """Formata a resposta de forma natural e compacta."""
-    resposta = texto_ia.strip()
-    
-    if videos:
-        resposta += "\n\nVocê pode ver mais em detalhes nestes vídeos:"
-        for video in videos:
-            resposta += f"\n• {video['titulo']}\n  {video['url']}"
-    
-    return resposta
+CONTATO OFICIAL:
+• Email: {CONTATO_EMAIL}
+• Telefone: {CONTATO_TELEFONE}
 
+LOGÍSTICA:
+• Endereço: {LOGISTICA_STOROPACK["endereco"]}
+• Horário: {LOGISTICA_STOROPACK["horario"]}
 
-# ===================== FUNÇÃO PRINCIPAL =====================
+ESTILO WHATSAPP:
+• Frases curtas e diretas.
+• Sempre separe ideias com quebras de linha.
+• Quando for passo a passo, use:
+  1) Passo
+  2) Passo
+  3) Passo
+• Não use markdown (sem **negrito**, #, listas com "-").
+• Pode usar 1 emoji discreto, se fizer sentido.
 
-def responder_cliente(pergunta: str) -> str:
-    pergunta = pergunta.strip()
+MÓDULOS E REGRAS:
+• O sistema pode informar uma linha como "MÓDULO ATUAL: AIRplus", "AIRmove", "PAPERplus" ou "FOAMplus".
+• Quando houver MÓDULO ATUAL:
+  - Responda somente sobre essa linha de solução.
+  - Exemplos:
+    - Se MÓDULO ATUAL = AIRplus:
+      Fale apenas de travesseiros de ar AIRplus (VOID, BUBBLE, CUSHION, WRAP), operação, manutenção e erros do AIRplus.
+    - Se MÓDULO ATUAL = AIRmove:
+      Fale apenas sobre a máquina AIRmove, seus filmes, ajustes e problemas de operação.
+    - Se MÓDULO ATUAL = PAPERplus:
+      Fale apenas sobre PAPERplus Classic, Track, Papillon e PAPERbubble.
+    - Se MÓDULO ATUAL = FOAMplus:
+      Fale apenas sobre FOAMplus, espuma expandida, Bagpacker, Handpacker e sua operação.
+  - Se o cliente perguntar sobre outra linha (por exemplo, está no AIRplus e pergunta sobre PAPERplus), responda educadamente algo como:
+    "Você está no módulo AIRplus. Para falar de outra solução, clique em 'Voltar ao Menu' e escolha a linha que você quer."
+
+FORA DO ESCOPO:
+• Se a pergunta não tiver relação com embalagens, equipamentos ou logística da STOROPack, responda apenas:
+  "Posso ajudar apenas com assuntos técnicos, comerciais ou logísticos da STOROpack."
+"""
+
+# ============================ FUNÇÕES AUXILIARES ============================
+
+def esta_no_escopo_global(texto: str) -> bool:
+    t = texto.lower()
+    return any(k in t for k in ALLOWED_KEYWORDS_GLOBAL)
+
+def limpar_formatacao(texto: str) -> str:
+    # Remove marcações simples de markdown para ficar mais "WhatsApp"
+    return texto.replace("**", "").replace("*", "")
+
+def encontrar_videos(pergunta: str, modulo: str | None) -> list[dict]:
+    """Retorna vídeos relevantes baseados primeiro no módulo, depois no texto."""
+    videos = []
+
+    # Prioriza o módulo
+    if modulo:
+        chave = modulo.lower()
+        if chave in VIDEOS_STOROPACK:
+            videos.append(VIDEOS_STOROPACK[chave])
+
+    # Se não encontrou nada pelo módulo, tenta por palavras
+    if not videos:
+        p = pergunta.lower()
+        for chave, video in VIDEOS_STOROPACK.items():
+            if chave in p:
+                videos.append(video)
+
+    return videos[:2]
+
+def responder_cliente(pergunta: str, modulo: str | None = None) -> str:
+    pergunta = (pergunta or "").strip()
 
     if not pergunta:
-        return "Qual é sua dúvida ou problema sobre os equipamentos e materiais Storopack?"
+        return "Oi! Como posso te ajudar hoje? 🙂"
 
-    if not _esta_no_escopo(pergunta):
-        return (
-            "Posso ajudar só em assuntos técnicos e comerciais da Storopack. "
-            "Envie sua dúvida sobre equipamentos, materiais ou processos de embalagem."
-        )
+    # Sem módulo: valida se está no escopo geral
+    if not modulo and not esta_no_escopo_global(pergunta):
+        return "Posso ajudar apenas com assuntos técnicos, comerciais ou logísticos da STOROpack."
+
+    # Monta contexto de módulo para o modelo
+    contexto_modulo = ""
+    if modulo:
+        contexto_modulo = f"\n\nMÓDULO ATUAL: {modulo}."
 
     try:
-        # Chamada correta para a API do OpenAI
         resposta = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": ASSISTANT_PROMPT},
-                {"role": "user", "content": pergunta},
+                {"role": "system", "content": ASSISTANT_PROMPT + contexto_modulo},
+                {"role": "user", "content": pergunta}
             ],
             max_tokens=500,
-            temperature=0.7,
+            temperature=0.6,
         )
 
-        texto_ia = resposta.choices[0].message.content
-        videos = _encontrar_videos_relevantes(pergunta)
-        
-        return _formatar_resposta(texto_ia, videos)
+        texto = limpar_formatacao(resposta.choices[0].message.content)
+        videos = encontrar_videos(pergunta, modulo)
+
+        if videos:
+            texto += "\n\nDá uma olhada nesse vídeo:\n"
+            for v in videos:
+                texto += f"{v['titulo']}\n{v['url']}\n"
+
+        return texto
 
     except RateLimitError:
-        return "No momento não consigo acessar o serviço. Verifique os créditos da OpenAI com o suporte."
+        return "Limite da API foi atingido. Tente novamente em alguns instantes."
     except Exception as e:
-        return f"Erro ao acessar o serviço: {str(e)}"
+        return f"Erro ao acessar serviço: {e}"
+
+# ============================ FRONT HTML ============================
+
+HTML_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Assistente STOROpack</title>
+
+<style>
+body { font-family: Arial; max-width: 720px; margin: auto; }
+.chat { border: 1px solid #ccc; height: 470px; padding: 10px; overflow-y: auto; border-radius: 6px; }
+.msg-user { text-align: right; margin: 8px 0; }
+.msg-bot { text-align: left; margin: 8px 0; }
+.msg-user span { background: #DCF8C6; padding: 8px 12px; border-radius: 8px; display: inline-block; }
+.msg-bot span { background: #eee; padding: 8px 12px; border-radius: 8px; display: inline-block; }
+button { margin: 4px; padding: 6px 12px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; }
+#msg { padding: 6px; }
+.top-bar { margin-bottom: 8px; }
+.info-modulo { font-size: 0.9rem; color: #555; margin-bottom: 8px; }
+</style>
+
+</head>
+<body>
+
+<h2>Assistente STOROpack</h2>
+
+<div class="top-bar">
+    <button onclick="selecionarModulo('AIRplus')">AIRplus</button>
+    <button onclick="selecionarModulo('AIRmove')">AIRmove</button>
+    <button onclick="selecionarModulo('PAPERplus')">PAPERplus</button>
+    <button onclick="selecionarModulo('FOAMplus')">FOAMplus</button>
+    <button onclick="voltarMenu()">Voltar ao Menu</button>
+</div>
+
+<div class="info-modulo" id="info-modulo">
+    Nenhum módulo selecionado. Você pode escolher uma linha acima ou simplesmente mandar sua dúvida.
+</div>
+
+<div class="chat" id="chat">
+    <div class="msg-bot"><span>Bom dia! Em que posso ajudar hoje? 🙂</span></div>
+</div>
+
+<br>
+
+<input type="text" id="msg" placeholder="Digite sua mensagem..." style="width:80%">
+<button onclick="enviar()">Enviar</button>
+
+<script>
+function addUser(msg){
+    let c = document.getElementById("chat");
+    c.innerHTML += "<div class='msg-user'><span>"+escapeHtml(msg)+"</span></div>";
+    c.scrollTop = c.scrollHeight;
+}
+
+function addBot(msg){
+    let c = document.getElementById("chat");
+    msg = escapeHtml(msg).replace(/\\n/g,"<br>");
+    c.innerHTML += "<div class='msg-bot'><span>"+msg+"</span></div>";
+    c.scrollTop = c.scrollHeight;
+}
+
+function setInfoModulo(texto){
+    document.getElementById("info-modulo").innerText = texto;
+}
+
+function escapeHtml(texto){
+    return texto
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+async function selecionarModulo(modulo){
+    const r = await fetch("/api/modulo", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ modulo })
+    });
+
+    const data = await r.json();
+    setInfoModulo(data.modulo_texto);
+    addBot(data.resposta);
+}
+
+async function voltarMenu(){
+    const r = await fetch("/api/voltar", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:"{}"
+    });
+
+    const data = await r.json();
+    setInfoModulo(data.modulo_texto);
+    addBot(data.resposta);
+}
+
+async function enviar(){
+    const campo = document.getElementById("msg");
+    const texto = campo.value.trim();
+    if(!texto) return;
+
+    addUser(texto);
+    campo.value = "";
+
+    const r = await fetch("/api/msg", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ mensagem:texto })
+    });
+
+    const data = await r.json();
+    addBot(data.resposta);
+}
+</script>
+
+</body>
+</html>
+"""
+
+# ============================ ROTAS FLASK ============================
+
+@app.route("/")
+def index():
+    return render_template_string(HTML_PAGE)
+
+@app.route("/api/modulo", methods=["POST"])
+def api_modulo():
+    data = request.get_json()
+    modulo = data.get("modulo")
+    session["modulo"] = modulo
+
+    texto_modulo = ""
+    if modulo == "AIRplus":
+        texto_modulo = "Módulo atual: AIRplus (travesseiros de ar: VOID, BUBBLE, CUSHION, WRAP)."
+    elif modulo == "AIRmove":
+        texto_modulo = "Módulo atual: AIRmove (linha compacta de travesseiros de ar)."
+    elif modulo == "PAPERplus":
+        texto_modulo = "Módulo atual: PAPERplus (Classic, Track, Papillon e PAPERbubble)."
+    elif modulo == "FOAMplus":
+        texto_modulo = "Módulo atual: FOAMplus (espuma expandida, Bagpacker, Handpacker)."
+    else:
+        texto_modulo = "Nenhum módulo selecionado."
+
+    resposta = f"Beleza! Vamos falar sobre {modulo}. Pode mandar sua dúvida 🙂"
+    return jsonify({"resposta": resposta, "modulo_texto": texto_modulo})
+
+@app.route("/api/voltar", methods=["POST"])
+def api_voltar():
+    session["modulo"] = None
+    resposta = (
+        "Voltei para o menu principal.\n\n"
+        "Agora você pode escolher outra solução nos botões acima "
+        "ou mandar uma dúvida geral sobre Storopack."
+    )
+    texto_modulo = "Nenhum módulo selecionado. Você pode escolher uma linha acima ou mandar sua dúvida."
+    return jsonify({"resposta": resposta, "modulo_texto": texto_modulo})
+
+@app.route("/api/msg", methods=["POST"])
+def api_msg():
+    data = request.get_json()
+    texto = data.get("mensagem", "")
+    modulo = session.get("modulo")
+    resposta = responder_cliente(texto, modulo)
+    return jsonify({"resposta": resposta})
+
+# ============================ RUN ============================
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
