@@ -7,6 +7,14 @@ import os
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# ============================ VECTOR STORE CONFIG ============================
+# Coloque aqui o ID da sua Vector Store (onde está o PDF "Treinamento - Tecnico e Comercial.pdf")
+# Para criar: vá em platform.openai.com > Storage > Vector Stores
+VECTOR_STORE_ID = os.getenv("VECTOR_STORE_ID", "")  # Ex: "vs_abc123..."
+
+# ID do Assistant (se já tiver criado um)
+ASSISTANT_ID = os.getenv("ASSISTANT_ID", "")  # Ex: "asst_abc123..."
+
 # ============================ DADOS FIXOS ============================
 
 CONTATO_EMAIL = "packaging.br@storopack.com"
@@ -45,26 +53,31 @@ MODULOS_CONFIG = {
     "airplus": {
         "nome": "AIRplus",
         "descricao": "Travesseiros de ar (VOID, BUBBLE, CUSHION, WRAP)",
-        "keywords": ["airplus", "void", "bubble", "cushion", "wrap", "travesseiro", "ar", "inflável", "inflar", "almofada de ar"],
+        "keywords": ["airplus", "void", "bubble", "cushion", "wrap", "travesseiro", "ar", "inflável", "inflar", "almofada de ar", "e1", "e2", "e3", "e4", "e5", "erro"],
         "prompt_extra": """
 FOCO: Equipamentos AIRplus (VOID, BUBBLE, CUSHION, WRAP).
-- Travesseiros de ar para preenchimento de vazios
-- Diferentes modelos de almofadas
-- Bobinas e filmes AIRplus
-- Erros comuns: E1, E2, E3, E4, etc.
-- Manutenção: troca de bobina, regulagem de selagem, limpeza de sensores
+
+ERROS COMUNS E SOLUÇÕES RÁPIDAS:
+• E1 - Problema no sensor de filme
+• E2 - Falha na selagem
+• E3 - Problema com pressão de ar
+• E4 - Sensor de corte
+• E5 - Superaquecimento
+
+SEMPRE BUSQUE NO ARQUIVO "Treinamento - Tecnico e Comercial.pdf" para erros específicos.
 """
     },
     "paperplus": {
         "nome": "PAPERplus",
-        "descricao": "Papel de proteção (Classic, Track, Papillon, PAPERbubble)",
-        "keywords": ["paperplus", "papel", "paper", "classic", "track", "papillon", "paperbubble", "kraft", "reciclado"],
+        "descricao": "Papel de proteção (Classic, Track, Papillon, PAPERbubble, Shooter, CX, Coiler)",
+        "keywords": ["paperplus", "papel", "paper", "classic", "track", "papillon", "paperbubble", "kraft", "reciclado", "shooter", "cx", "coiler"],
         "prompt_extra": """
-FOCO: Equipamentos PAPERplus (Classic, Track, Papillon) e PAPERbubble.
-- Papel kraft para proteção e preenchimento
-- Diferentes gramagens e larguras
-- Manutenção: troca de bobina de papel, ajuste de corte, tensão do papel
-- Problemas comuns: papel preso, corte irregular, travamento
+FOCO: Equipamentos PAPERplus (Classic, Track, Papillon, Shooter, CX, Coiler) e PAPERbubble.
+
+PROBLEMAS COMUNS:
+• Papel preso → Verificar tensão e alinhamento
+• Corte irregular → Ajustar faca ou lâmina
+• Travamento → Limpar rolos e verificar bobina
 """
     },
     "foamplus": {
@@ -73,11 +86,13 @@ FOCO: Equipamentos PAPERplus (Classic, Track, Papillon) e PAPERbubble.
         "keywords": ["foamplus", "foam", "espuma", "bagpacker", "handpacker", "poliuretano", "expansão", "química"],
         "prompt_extra": """
 FOCO: Equipamentos FOAMplus (Bagpacker, Handpacker).
-- Espuma de poliuretano expandida in-loco
-- Proteção moldada ao produto
-- Manutenção: limpeza de bicos, proporção química, temperatura
-- Problemas comuns: espuma não expande, vazamento, entupimento
-- IMPORTANTE: Sempre alertar sobre uso de EPIs (luvas, óculos)
+
+⚠️ SEMPRE ALERTAR: Use EPIs (luvas, óculos, avental)!
+
+PROBLEMAS COMUNS:
+• Espuma não expande → Verificar proporção química e temperatura
+• Vazamento → Checar conexões e bicos
+• Entupimento → Limpar bicos com solvente apropriado
 """
     },
     "airmove": {
@@ -86,124 +101,193 @@ FOCO: Equipamentos FOAMplus (Bagpacker, Handpacker).
         "keywords": ["airmove", "compacto", "portátil", "move", "pequeno"],
         "prompt_extra": """
 FOCO: Equipamento AIRmove (linha compacta).
-- Versão compacta para menor volume de produção
-- Travesseiros de ar em formato menor
-- Ideal para e-commerce e pequenas operações
-- Manutenção similar ao AIRplus, porém simplificada
+
+PROBLEMAS COMUNS:
+• Almofada não infla → Verificar filme e sensores
+• Selagem fraca → Ajustar temperatura
+• Máquina não liga → Checar fonte de alimentação
 """
     }
 }
 
-# ============================ PROMPT BASE ============================
+# ============================ PROMPT BASE (ESTILO WHATSAPP) ============================
 
 ASSISTANT_PROMPT_BASE = f"""
-Você é o Assistente Oficial da STOROpack Brasil, focado em orientar clientes sobre:
+Você é o Assistente Técnico da STOROpack Brasil.
 
-• Equipamentos: AIRplus (VOID, BUBBLE, CUSHION, WRAP), AIRmove, PAPERplus Classic, PAPERplus Track, PAPERplus Papillon, PAPERbubble, FOAMplus.
-• Materiais de proteção: travesseiros de ar, papel de proteção, espuma, filmes, soluções sustentáveis, etc.
-• Manutenção básica e operação dos equipamentos.
-• Processos de embalagem, cubagem, ergonomia e otimização de linhas.
-• Informações de logística, coleta e dúvidas gerais sobre a empresa.
+ESTILO DE RESPOSTA (MUITO IMPORTANTE):
+• Respostas CURTAS e DIRETAS, estilo WhatsApp
+• Use quebras de linha para separar cada passo
+• Máximo 5-6 linhas por resposta
+• Não use parágrafos longos
+• Use emojis com moderação (1-2 por resposta)
 
-CONTATO OFICIAL:
+FORMATO DE RESPOSTA PARA PROBLEMAS:
+```
+🔧 [Nome do problema]
+
+1. Primeiro passo
+2. Segundo passo
+3. Terceiro passo
+
+⚠️ Dica: [dica importante]
+```
+
+FORMATO PARA ERROS (Ex: E3):
+```
+❌ Erro E3 - [Nome do erro]
+
+Causa: [causa principal]
+
+Solução:
+1. Passo 1
+2. Passo 2
+3. Passo 3
+
+Se persistir, ligue: {CONTATO_TELEFONE}
+```
+
+REGRAS:
+• SEMPRE diga "Desligue da tomada" antes de qualquer intervenção física
+• Seja objetivo e vá direto ao ponto
+• Não repita informações
+• Se não souber, diga que vai verificar
+
+CONTATO:
+• Tel: {CONTATO_TELEFONE}
 • Email: {CONTATO_EMAIL}
-• Telefone: {CONTATO_TELEFONE}
-
-LOGÍSTICA:
-• Endereço: {LOGISTICA_STOROPACK["endereco"]}
-• Horário: {LOGISTICA_STOROPACK["horario"]}
-
-MANUTENÇÃO – O QUE VOCÊ PODE ORIENTAR:
-1. Inicializar o equipamento.
-2. Troca de modelo de bobina / filme.
-3. Regulagem operacional (selagem, enchimento, velocidade).
-4. Troca de peças simples (faca, correias, etc).
-5. Orientação sobre erros e códigos no display.
-6. Sempre mencione que existem vídeos de suporte.
-
-REGRA DE SEGURANÇA (OBRIGATÓRIA):
-• Antes de qualquer intervenção física: "Por segurança, desligue o equipamento da tomada antes de realizar qualquer intervenção."
-
-ESTILO DE COMUNICAÇÃO:
-• Responda em português do Brasil, com tom natural e profissional.
-• Respostas objetivas, dinâmicas, próximas.
-• Use listas numeradas quando for procedimento passo a passo.
-• Pode usar 1 emoji discreto (🙂) quando fizer sentido.
-• Não invente dados técnicos que não sabe.
 """
 
 # ============================ FUNÇÕES AUXILIARES ============================
 
 def limpar_formatacao(texto: str) -> str:
-    """Remove marcações simples de markdown para ficar mais limpo."""
-    return texto.replace("**", "").replace("*", "")
+    """Remove marcações de markdown mas mantém quebras de linha."""
+    texto = texto.replace("**", "")
+    texto = texto.replace("*", "")
+    texto = texto.replace("```", "")
+    texto = texto.replace("###", "")
+    texto = texto.replace("##", "")
+    texto = texto.replace("#", "")
+    return texto.strip()
 
 
 def encontrar_videos(pergunta: str, modulo: str | None) -> list[dict]:
-    """Retorna vídeos relevantes baseados primeiro no módulo, depois no texto."""
+    """Retorna vídeos relevantes baseados no módulo."""
     videos = []
-
-    # Prioriza o módulo
+    
     if modulo:
-        chave = modulo.lower()
-        if chave in VIDEOS_STOROPACK:
-            videos.append(VIDEOS_STOROPACK[chave])
+        # Extrai o módulo base (sem submódulo)
+        modulo_base = modulo.split("_")[0].lower()
+        if modulo_base in VIDEOS_STOROPACK:
+            videos.append(VIDEOS_STOROPACK[modulo_base])
 
-    # Se não encontrou nada pelo módulo, tenta por palavras
     if not videos:
         p = pergunta.lower()
         for chave, video in VIDEOS_STOROPACK.items():
             if chave in p:
                 videos.append(video)
+                break
 
-    return videos[:2]
+    return videos[:1]  # Só 1 vídeo para não poluir
 
 
 def verificar_escopo_modulo(pergunta: str, modulo: str) -> bool:
-    """
-    Verifica se a pergunta está relacionada ao módulo selecionado.
-    Retorna True se está no escopo, False se parece ser sobre outro módulo.
-    """
+    """Verifica se a pergunta está no escopo do módulo."""
     pergunta_lower = pergunta.lower()
+    modulo_base = modulo.split("_")[0].lower()
     
-    # Palavras que indicam outro módulo
-    outros_modulos = {k: v for k, v in MODULOS_CONFIG.items() if k != modulo}
+    outros_modulos = {k: v for k, v in MODULOS_CONFIG.items() if k != modulo_base}
     
     for outro_modulo, config in outros_modulos.items():
-        # Verifica se menciona explicitamente outro módulo
         if outro_modulo in pergunta_lower:
             return False
-        # Verifica keywords específicas de outro módulo
-        for keyword in config["keywords"]:
-            if keyword in pergunta_lower and keyword not in MODULOS_CONFIG[modulo]["keywords"]:
-                return False
     
     return True
 
 
 def montar_prompt_modulo(modulo: str) -> str:
-    """Monta o prompt específico para o módulo selecionado."""
-    config = MODULOS_CONFIG.get(modulo)
+    """Monta o prompt específico para o módulo."""
+    modulo_base = modulo.split("_")[0].lower()
+    config = MODULOS_CONFIG.get(modulo_base)
     
     if not config:
         return ASSISTANT_PROMPT_BASE
     
-    prompt_modulo = f"""
+    # Verifica se tem submódulo
+    submódulo = ""
+    if "_" in modulo:
+        partes = modulo.split("_")
+        submódulo = " ".join(partes[1:]).replace("_", " ").title()
+    
+    prompt = f"""
 {ASSISTANT_PROMPT_BASE}
 
-═══════════════════════════════════════════════════════
-MÓDULO ATIVO: {config['nome']} - {config['descricao']}
-═══════════════════════════════════════════════════════
+══════════════════════════════════
+MÓDULO: {config['nome']} {submódulo}
+══════════════════════════════════
 {config['prompt_extra']}
 
-IMPORTANTE:
-- Você está atendendo ESPECIFICAMENTE sobre {config['nome']}.
-- Foque suas respostas neste equipamento/linha de produtos.
-- Se o cliente perguntar sobre OUTRO equipamento (que não seja {config['nome']}), 
-  responda educadamente: "Você está no módulo {config['nome']}. Para dúvidas sobre 
-  outros equipamentos, por favor volte ao menu inicial e selecione o módulo correto."
+LEMBRE-SE:
+• Respostas curtas, estilo WhatsApp
+• Quebra de linha entre cada passo
+• Máximo 5-6 linhas
+• Vá direto ao ponto!
 """
-    return prompt_modulo
+    return prompt
+
+
+def responder_com_assistants_api(pergunta: str, modulo: str) -> str:
+    """
+    Usa a Assistants API com File Search para buscar no PDF.
+    Requer ASSISTANT_ID e VECTOR_STORE_ID configurados.
+    """
+    try:
+        # Cria uma thread
+        thread = client.beta.threads.create()
+        
+        # Adiciona a mensagem do usuário
+        client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=pergunta
+        )
+        
+        # Executa o assistant
+        run = client.beta.threads.runs.create_and_poll(
+            thread_id=thread.id,
+            assistant_id=ASSISTANT_ID,
+            instructions=montar_prompt_modulo(modulo)
+        )
+        
+        if run.status == "completed":
+            messages = client.beta.threads.messages.list(thread_id=thread.id)
+            for msg in messages.data:
+                if msg.role == "assistant":
+                    texto = msg.content[0].text.value
+                    return limpar_formatacao(texto)
+        
+        return "Não consegui processar sua pergunta. Tente novamente."
+        
+    except Exception as e:
+        print(f"Erro Assistants API: {e}")
+        return None
+
+
+def responder_com_chat_completions(pergunta: str, modulo: str) -> str:
+    """Usa Chat Completions (fallback se não tiver Assistants configurado)."""
+    prompt_sistema = montar_prompt_modulo(modulo)
+    
+    resposta = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": prompt_sistema},
+            {"role": "user", "content": pergunta}
+        ],
+        max_tokens=400,  # Reduzido para respostas mais curtas
+        temperature=0.5,  # Mais focado
+    )
+    
+    return resposta.choices[0].message.content
 
 
 # ============================ FUNÇÃO PRINCIPAL ============================
@@ -214,60 +298,51 @@ def responder_cliente(pergunta: str, modulo: str | None = None) -> str:
     
     Args:
         pergunta: A pergunta do usuário
-        modulo: O módulo ativo (airplus, paperplus, foamplus, airmove) - em minúsculo
+        modulo: O módulo ativo (ex: airplus, paperplus_classic, foamplus_bagpacker)
     
     Returns:
-        Resposta do assistente
+        Resposta formatada estilo WhatsApp
     """
     pergunta = (pergunta or "").strip()
 
     if not pergunta:
-        return "Oi! Como posso te ajudar hoje? 🙂"
+        return "Oi! 👋\n\nComo posso te ajudar?"
 
-    # Se não tem módulo, não deveria chegar aqui (interface bloqueia)
-    # Mas por segurança, retorna mensagem padrão
     if not modulo:
-        return "Por favor, selecione um equipamento no menu para começarmos. 🙂"
+        return "Por favor, selecione um equipamento no menu. 🙂"
 
-    # Normaliza o módulo para minúsculo
     modulo = modulo.lower()
+    modulo_base = modulo.split("_")[0]
 
-    # Verifica se a pergunta está no escopo do módulo
+    # Verifica escopo
     if not verificar_escopo_modulo(pergunta, modulo):
-        nome_modulo = MODULOS_CONFIG.get(modulo, {}).get("nome", modulo.upper())
+        nome_modulo = MODULOS_CONFIG.get(modulo_base, {}).get("nome", modulo_base.upper())
         return (
-            f"Você está no módulo {nome_modulo}. "
-            f"Para dúvidas sobre outros equipamentos, por favor clique em 'Voltar' "
-            f"e selecione o módulo correto. 🙂"
+            f"⚠️ Você está no módulo {nome_modulo}.\n\n"
+            f"Para outros equipamentos, clique em 'Voltar' e selecione o módulo correto."
         )
-
-    # Monta o prompt específico do módulo
-    prompt_sistema = montar_prompt_modulo(modulo)
 
     try:
-        resposta = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": prompt_sistema},
-                {"role": "user", "content": pergunta}
-            ],
-            max_tokens=500,
-            temperature=0.6,
-        )
-
-        texto = limpar_formatacao(resposta.choices[0].message.content)
+        # Tenta usar Assistants API (com Vector Store) se configurado
+        if ASSISTANT_ID and VECTOR_STORE_ID:
+            resposta = responder_com_assistants_api(pergunta, modulo)
+            if resposta:
+                texto = limpar_formatacao(resposta)
+            else:
+                texto = limpar_formatacao(responder_com_chat_completions(pergunta, modulo))
+        else:
+            # Fallback para Chat Completions
+            texto = limpar_formatacao(responder_com_chat_completions(pergunta, modulo))
         
-        # Busca vídeos relevantes
+        # Adiciona vídeo se relevante
         videos = encontrar_videos(pergunta, modulo)
-
         if videos:
-            texto += "\n\nDá uma olhada nesse vídeo:\n"
-            for v in videos:
-                texto += f"{v['titulo']}\n{v['url']}\n"
+            texto += f"\n\n📹 Vídeo de apoio:\n{videos[0]['url']}"
 
         return texto
 
     except RateLimitError:
-        return "Limite da API foi atingido. Tente novamente em alguns instantes."
+        return "⏳ Muitas requisições.\n\nTente novamente em alguns segundos."
     except Exception as e:
-        return f"Erro ao acessar serviço: {e}"
+        print(f"Erro: {e}")
+        return f"❌ Erro ao processar.\n\nTente novamente ou ligue: {CONTATO_TELEFONE}"
