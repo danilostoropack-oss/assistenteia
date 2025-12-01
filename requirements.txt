@@ -3,5 +3,4 @@ gunicorn
 openai
 python-dotenv
 google-generativeai
-opencv-python-headless
 pillow

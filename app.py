@@ -33,7 +33,11 @@ def analyze_video():
         try:
             from video_analyzer import analisar_video_erro
             VIDEO_ENABLED = True
-        except ImportError:
+        except ImportError as e:
+            print(f"Erro ao importar video_analyzer: {e}")
+            VIDEO_ENABLED = False
+        except Exception as e:
+            print(f"Erro ao importar video_analyzer: {e}")
             VIDEO_ENABLED = False
         
         if not VIDEO_ENABLED:
@@ -52,6 +56,8 @@ def analyze_video():
             return jsonify({"resposta": "Arquivo de vídeo inválido."})
 
         video_bytes = video_file.read()
+        
+        print(f"Recebido vídeo: {len(video_bytes)} bytes, módulo: {modulo}")
 
         resposta = analisar_video_erro(
             video_bytes=video_bytes,
@@ -62,7 +68,9 @@ def analyze_video():
         return jsonify({"resposta": resposta})
 
     except Exception as e:
+        import traceback
         print(f"Erro ao analisar vídeo: {e}")
+        print(traceback.format_exc())
         return jsonify({
             "resposta": "❌ Erro ao analisar vídeo.\n\nDescreva o problema por texto ou ligue: (11) 5677-4699"
         })
