@@ -1,585 +1,364 @@
 """
-Módulo de Análise Visual de Vídeos - Storopack
-Analisa vídeos de erros enviados pelos clientes e identifica problemas.
-
-Requisitos:
-pip install google-generativeai opencv-python pillow python-dotenv
-
-Configuração (.env):
-GOOGLE_API_KEY=sua_chave_gemini
-OPENAI_API_KEY=sua_chave_openai (fallback)
+Analisador de Vídeo com IA para Storopack
+Usa Google Gemini ou OpenAI GPT-4o Vision para analisar vídeos de erros
 """
 
 import os
 import base64
 import tempfile
-from pathlib import Path
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# ============================ CONFIGURAÇÃO ============================
+# Configurações
+MAX_FRAMES = 10
+FRAME_SIZE = (512, 512)
 
-# Tenta usar Gemini primeiro (melhor para vídeos), fallback para OpenAI
-USE_GEMINI = True
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-
-# Configurações de extração de frames
-MAX_FRAMES = 10  # Máximo de frames para análise
-FRAME_INTERVAL = 2  # Segundos entre frames
-
-# ============================ ERROS DE REFERÊNCIA ============================
-
-# Base de conhecimento de erros visuais (descrições para a IA comparar)
+# Base de conhecimento de erros visuais por módulo
 ERROS_VISUAIS = {
     "airplus": {
         "E1": {
             "nome": "Erro de Sensor de Filme",
-            "sinais_visuais": [
-                "LED vermelho piscando",
-                "Display mostrando E1",
-                "Filme parado ou desalinhado",
-                "Sensor com sujeira visível"
-            ],
-            "solucao": """
-🔧 Erro E1 - Sensor de Filme
-
-1. Desligue da tomada ⚡
-2. Abra a tampa do sensor
-3. Limpe com pano seco
-4. Verifique alinhamento do filme
-5. Religue e teste
-
-📹 Vídeo: https://youtube.com/watch?v=xxx
-"""
+            "sinais": ["LED vermelho aceso", "display mostrando E1", "filme desalinhado"],
+            "solucao": "1. Desligue a máquina\n2. Verifique o alinhamento do filme\n3. Limpe o sensor com pano seco\n4. Religue e teste",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         },
         "E2": {
             "nome": "Falha na Selagem",
-            "sinais_visuais": [
-                "Display mostrando E2",
-                "Almofadas não selando",
-                "Vazamento de ar nas almofadas",
-                "Barra de selagem com resíduos"
-            ],
-            "solucao": """
-🔧 Erro E2 - Falha na Selagem
-
-1. Desligue da tomada ⚡
-2. Espere esfriar (5 min)
-3. Limpe barra de selagem
-4. Verifique temperatura no menu
-5. Teste com filme novo
-
-📹 Vídeo: https://youtube.com/watch?v=xxx
-"""
+            "sinais": ["almofadas não selam corretamente", "vazamento de ar", "selagem fraca"],
+            "solucao": "1. Verifique a temperatura de selagem\n2. Limpe a barra de selagem\n3. Ajuste a pressão\n4. Teste com novo filme",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         },
         "E3": {
             "nome": "Problema de Pressão de Ar",
-            "sinais_visuais": [
-                "Display mostrando E3",
-                "Almofadas murchas ou fracas",
-                "Som de ar vazando",
-                "Compressor fazendo barulho estranho",
-                "Mangueiras soltas ou dobradas"
-            ],
-            "solucao": """
-🔧 Erro E3 - Pressão de Ar
-
-1. Desligue da tomada ⚡
-2. Cheque mangueiras de ar
-3. Verifique conexões
-4. Limpe filtro de ar
-5. Religue e teste
-
-Se persistir: (11) 5677-4699
-
-📹 Vídeo: https://youtube.com/watch?v=IbG1o-UbrtI
-"""
+            "sinais": ["almofadas murchas", "som de vazamento", "mangueiras soltas", "display E3"],
+            "solucao": "1. Verifique conexões de ar\n2. Cheque mangueiras\n3. Limpe filtro de ar\n4. Ajuste pressão no regulador",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         },
         "E4": {
             "nome": "Erro no Sensor de Corte",
-            "sinais_visuais": [
-                "Display mostrando E4",
-                "Filme não corta",
-                "Corte irregular",
-                "Lâmina travada"
-            ],
-            "solucao": """
-🔧 Erro E4 - Sensor de Corte
-
-1. Desligue da tomada ⚡
-2. Verifique a lâmina
-3. Limpe área de corte
-4. Cheque sensor óptico
-5. Teste o corte manual
-
-📹 Vídeo: https://youtube.com/watch?v=xxx
-"""
+            "sinais": ["filme não corta", "corte irregular", "lâmina travada"],
+            "solucao": "1. Desligue a máquina\n2. Verifique a lâmina de corte\n3. Limpe resíduos\n4. Substitua lâmina se necessário",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         },
         "E5": {
             "nome": "Superaquecimento",
-            "sinais_visuais": [
-                "Display mostrando E5",
-                "Máquina quente ao toque",
-                "Cheiro de queimado",
-                "Ventilador não funciona"
-            ],
-            "solucao": """
-⚠️ Erro E5 - Superaquecimento
-
-1. DESLIGUE IMEDIATAMENTE ⚡
-2. Aguarde 30 minutos
-3. Verifique ventilação
-4. Limpe filtros de ar
-5. Não obstrua saídas de ar
-
-ATENÇÃO: Se persistir, NÃO use!
-Ligue: (11) 5677-4699
-
-📹 Vídeo: https://youtube.com/watch?v=xxx
-"""
+            "sinais": ["máquina muito quente", "cheiro de queimado", "desligamento automático"],
+            "solucao": "1. Desligue imediatamente\n2. Aguarde 30 minutos\n3. Verifique ventilação\n4. Limpe filtros de ar",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         },
         "travamento": {
             "nome": "Travamento de Filme",
-            "sinais_visuais": [
-                "Filme embolado",
-                "Filme preso nos rolos",
-                "Máquina parada",
-                "Ruído de motor forçando"
-            ],
-            "solucao": """
-🔧 Filme Travado
-
-1. Desligue da tomada ⚡
-2. Abra a tampa
-3. Remova filme embolado
-4. Verifique rolos
-5. Recoloque filme corretamente
-
-📹 Vídeo: https://youtube.com/watch?v=IbG1o-UbrtI
-"""
+            "sinais": ["filme preso", "filme embolado", "máquina parada"],
+            "solucao": "1. Desligue a máquina\n2. Abra a tampa\n3. Remova o filme preso\n4. Realinhe o filme\n5. Feche e teste",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         }
     },
     "paperplus": {
         "papel_preso": {
             "nome": "Papel Preso",
-            "sinais_visuais": [
-                "Papel amassado dentro da máquina",
-                "Papel não sai",
-                "Rolos parados",
-                "Barulho de papel rasgando"
-            ],
-            "solucao": """
-🔧 Papel Preso
-
-1. Desligue da tomada ⚡
-2. Abra tampa traseira
-3. Remova papel com cuidado
-4. Verifique rolos
-5. Recoloque bobina
-
-📹 Vídeo: https://youtube.com/watch?v=a8iCa46yRu4
-"""
+            "sinais": ["papel amassado", "papel não sai", "travamento"],
+            "solucao": "1. Desligue a máquina\n2. Abra a tampa traseira\n3. Remova o papel preso\n4. Verifique rolos\n5. Recarregue o papel",
+            "video": "https://www.youtube.com/watch?v=a8iCa46yRu4"
         },
         "corte_irregular": {
             "nome": "Corte Irregular",
-            "sinais_visuais": [
-                "Papel com bordas irregulares",
-                "Corte não completo",
-                "Lâmina visível desgastada"
-            ],
-            "solucao": """
-🔧 Corte Irregular
-
-1. Desligue da tomada ⚡
-2. Verifique lâmina de corte
-3. Limpe área de corte
-4. Ajuste pressão da lâmina
-5. Substitua se desgastada
-
-📹 Vídeo: https://youtube.com/watch?v=a8iCa46yRu4
-"""
+            "sinais": ["bordas irregulares", "corte torto", "lâmina gasta"],
+            "solucao": "1. Verifique a lâmina\n2. Limpe resíduos\n3. Ajuste a pressão\n4. Substitua lâmina se necessário",
+            "video": "https://www.youtube.com/watch?v=a8iCa46yRu4"
         }
     },
     "foamplus": {
         "espuma_nao_expande": {
             "nome": "Espuma Não Expande",
-            "sinais_visuais": [
-                "Espuma sai líquida",
-                "Não forma volume",
-                "Cor diferente do normal"
-            ],
-            "solucao": """
-🔧 Espuma Não Expande
-
-⚠️ USE EPIs (luvas, óculos)!
-
-1. Verifique temperatura (20-25°C)
-2. Cheque proporção A:B
-3. Agite os componentes
-4. Limpe bicos de mistura
-5. Teste em pequena quantidade
-
-📹 Vídeo: https://youtube.com/watch?v=bhVK8KCJihs
-"""
+            "sinais": ["espuma líquida", "não forma volume", "mistura incorreta"],
+            "solucao": "1. Verifique os químicos\n2. Cheque a proporção\n3. Limpe os bicos\n4. Ajuste a temperatura",
+            "video": "https://www.youtube.com/watch?v=bhVK8KCJihs"
         },
         "vazamento": {
             "nome": "Vazamento de Químico",
-            "sinais_visuais": [
-                "Líquido escorrendo",
-                "Manchas no chão",
-                "Conexões molhadas"
-            ],
-            "solucao": """
-⚠️ VAZAMENTO - ATENÇÃO!
-
-1. DESLIGUE IMEDIATAMENTE ⚡
-2. Use EPIs (luvas, óculos)
-3. Ventile o ambiente
-4. NÃO toque no químico
-5. Ligue: (11) 5677-4699
-
-📹 Vídeo: https://youtube.com/watch?v=bhVK8KCJihs
-"""
+            "sinais": ["líquido escorrendo", "poça no chão", "conexões molhadas"],
+            "solucao": "1. Desligue imediatamente\n2. Ventile a área\n3. Limpe o vazamento\n4. Verifique conexões\n5. Chame suporte técnico",
+            "video": "https://www.youtube.com/watch?v=bhVK8KCJihs"
+        }
+    },
+    "airmove": {
+        "E1": {
+            "nome": "Erro de Sensor",
+            "sinais": ["LED vermelho", "display E1"],
+            "solucao": "1. Desligue a máquina\n2. Verifique sensores\n3. Limpe com pano seco\n4. Religue",
+            "video": "https://www.youtube.com/watch?v=IbG1o-UbrtI"
         }
     }
 }
 
 
-# ============================ FUNÇÕES DE EXTRAÇÃO DE FRAMES ============================
-
-def extrair_frames_video(video_path: str, max_frames: int = MAX_FRAMES) -> list[str]:
-    """
-    Extrai frames de um vídeo e retorna como lista de base64.
-    
-    Args:
-        video_path: Caminho do arquivo de vídeo
-        max_frames: Número máximo de frames a extrair
-    
-    Returns:
-        Lista de strings base64 das imagens
-    """
+def extrair_frames_video(video_path, max_frames=MAX_FRAMES):
+    """Extrai frames de um vídeo usando OpenCV."""
     try:
         import cv2
-    except ImportError:
-        raise ImportError("Instale opencv-python: pip install opencv-python")
-    
-    frames_base64 = []
-    cap = cv2.VideoCapture(video_path)
-    
-    if not cap.isOpened():
-        raise ValueError(f"Não foi possível abrir o vídeo: {video_path}")
-    
-    # Pega informações do vídeo
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    duration = total_frames / fps if fps > 0 else 0
-    
-    # Calcula intervalo entre frames
-    if duration <= 0:
-        interval = 1
-    else:
-        interval = max(1, int(total_frames / max_frames))
-    
-    frame_count = 0
-    extracted = 0
-    
-    while cap.isOpened() and extracted < max_frames:
-        ret, frame = cap.read()
-        if not ret:
-            break
+        from PIL import Image
+        import io
         
-        if frame_count % interval == 0:
-            # Redimensiona para economizar tokens
-            frame = cv2.resize(frame, (512, 512))
+        cap = cv2.VideoCapture(video_path)
+        
+        if not cap.isOpened():
+            return None, "Não foi possível abrir o vídeo"
+        
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        if total_frames == 0:
+            return None, "Vídeo sem frames"
+        
+        interval = max(1, total_frames // max_frames)
+        
+        frames = []
+        frame_count = 0
+        
+        while len(frames) < max_frames:
+            ret, frame = cap.read()
+            if not ret:
+                break
             
-            # Converte para base64
-            _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
-            frame_base64 = base64.b64encode(buffer).decode('utf-8')
-            frames_base64.append(frame_base64)
-            extracted += 1
+            if frame_count % interval == 0:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(frame_rgb)
+                pil_image.thumbnail(FRAME_SIZE, Image.Resampling.LANCZOS)
+                
+                buffer = io.BytesIO()
+                pil_image.save(buffer, format="JPEG", quality=80)
+                base64_frame = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                
+                frames.append(base64_frame)
+            
+            frame_count += 1
         
-        frame_count += 1
-    
-    cap.release()
-    return frames_base64
-
-
-def extrair_frames_de_bytes(video_bytes: bytes, max_frames: int = MAX_FRAMES) -> list[str]:
-    """
-    Extrai frames de bytes de vídeo (para upload via web).
-    """
-    # Salva temporariamente
-    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp:
-        tmp.write(video_bytes)
-        tmp_path = tmp.name
-    
-    try:
-        frames = extrair_frames_video(tmp_path, max_frames)
-    finally:
-        os.unlink(tmp_path)  # Remove arquivo temporário
-    
-    return frames
-
-
-# ============================ ANÁLISE COM GEMINI ============================
-
-def analisar_com_gemini(frames_base64: list[str], modulo: str, descricao_cliente: str = "") -> dict:
-    """
-    Analisa frames usando Google Gemini.
-    
-    Args:
-        frames_base64: Lista de frames em base64
-        modulo: Módulo do equipamento (airplus, paperplus, etc.)
-        descricao_cliente: Descrição opcional do problema pelo cliente
-    
-    Returns:
-        Dict com erro_identificado, confianca, solucao
-    """
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        raise ImportError("Instale google-generativeai: pip install google-generativeai")
-    
-    if not GOOGLE_API_KEY:
-        raise ValueError("GOOGLE_API_KEY não configurada no .env")
-    
-    genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    # Monta contexto dos erros conhecidos
-    erros_modulo = ERROS_VISUAIS.get(modulo.split("_")[0], {})
-    erros_conhecidos = "\n".join([
-        f"- {codigo}: {info['nome']} - Sinais: {', '.join(info['sinais_visuais'])}"
-        for codigo, info in erros_modulo.items()
-    ])
-    
-    prompt = f"""
-Você é um técnico especialista em equipamentos Storopack ({modulo.upper()}).
-
-ERROS CONHECIDOS DESTE EQUIPAMENTO:
-{erros_conhecidos}
-
-TAREFA:
-Analise estas imagens/frames de um vídeo enviado por um cliente.
-Identifique qual erro está ocorrendo baseado nos sinais visuais.
-
-{f"DESCRIÇÃO DO CLIENTE: {descricao_cliente}" if descricao_cliente else ""}
-
-RESPONDA APENAS NO FORMATO JSON:
-{{
-    "erro_identificado": "código do erro (ex: E3) ou 'desconhecido'",
-    "nome_erro": "nome do erro",
-    "confianca": "alta/media/baixa",
-    "sinais_detectados": ["sinal 1", "sinal 2"],
-    "descricao": "breve descrição do que foi visto"
-}}
-"""
-    
-    # Prepara as imagens para o Gemini
-    import PIL.Image
-    import io
-    
-    images = []
-    for frame_b64 in frames_base64[:5]:  # Limita a 5 frames
-        img_bytes = base64.b64decode(frame_b64)
-        img = PIL.Image.open(io.BytesIO(img_bytes))
-        images.append(img)
-    
-    # Envia para análise
-    response = model.generate_content([prompt] + images)
-    
-    # Parse da resposta
-    try:
-        import json
-        # Extrai JSON da resposta
-        texto = response.text
-        # Tenta encontrar o JSON na resposta
-        inicio = texto.find('{')
-        fim = texto.rfind('}') + 1
-        if inicio >= 0 and fim > inicio:
-            resultado = json.loads(texto[inicio:fim])
-        else:
-            resultado = {
-                "erro_identificado": "desconhecido",
-                "confianca": "baixa",
-                "descricao": texto
-            }
-    except:
-        resultado = {
-            "erro_identificado": "desconhecido",
-            "confianca": "baixa",
-            "descricao": response.text
-        }
-    
-    return resultado
-
-
-# ============================ ANÁLISE COM OPENAI GPT-4o ============================
-
-def analisar_com_openai(frames_base64: list[str], modulo: str, descricao_cliente: str = "") -> dict:
-    """
-    Analisa frames usando OpenAI GPT-4o Vision (fallback).
-    """
-    from openai import OpenAI
-    
-    if not OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY não configurada no .env")
-    
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    
-    # Monta contexto dos erros conhecidos
-    erros_modulo = ERROS_VISUAIS.get(modulo.split("_")[0], {})
-    erros_conhecidos = "\n".join([
-        f"- {codigo}: {info['nome']} - Sinais: {', '.join(info['sinais_visuais'])}"
-        for codigo, info in erros_modulo.items()
-    ])
-    
-    prompt = f"""
-Você é um técnico especialista em equipamentos Storopack ({modulo.upper()}).
-
-ERROS CONHECIDOS:
-{erros_conhecidos}
-
-Analise as imagens e identifique o erro. 
-{f"Cliente disse: {descricao_cliente}" if descricao_cliente else ""}
-
-Responda em JSON:
-{{"erro_identificado": "código", "nome_erro": "nome", "confianca": "alta/media/baixa", "sinais_detectados": [], "descricao": "..."}}
-"""
-    
-    # Prepara mensagens com imagens
-    content = [{"type": "text", "text": prompt}]
-    
-    for frame_b64 in frames_base64[:4]:  # Limita a 4 frames (custo)
-        content.append({
-            "type": "image_url",
-            "image_url": {
-                "url": f"data:image/jpeg;base64,{frame_b64}",
-                "detail": "low"  # Usa low detail para economizar tokens
-            }
-        })
-    
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": content}],
-        max_tokens=500
-    )
-    
-    # Parse da resposta
-    try:
-        import json
-        texto = response.choices[0].message.content
-        inicio = texto.find('{')
-        fim = texto.rfind('}') + 1
-        if inicio >= 0 and fim > inicio:
-            resultado = json.loads(texto[inicio:fim])
-        else:
-            resultado = {"erro_identificado": "desconhecido", "descricao": texto}
-    except:
-        resultado = {"erro_identificado": "desconhecido", "descricao": response.choices[0].message.content}
-    
-    return resultado
-
-
-# ============================ FUNÇÃO PRINCIPAL ============================
-
-def analisar_video_erro(
-    video_bytes: bytes = None,
-    video_path: str = None,
-    modulo: str = "airplus",
-    descricao_cliente: str = ""
-) -> str:
-    """
-    Função principal para analisar vídeo de erro.
-    
-    Args:
-        video_bytes: Bytes do vídeo (upload web)
-        video_path: Caminho do arquivo de vídeo
-        modulo: Módulo do equipamento
-        descricao_cliente: Descrição do problema pelo cliente
-    
-    Returns:
-        Resposta formatada com diagnóstico e solução
-    """
-    try:
-        # Extrai frames
-        if video_bytes:
-            frames = extrair_frames_de_bytes(video_bytes)
-        elif video_path:
-            frames = extrair_frames_video(video_path)
-        else:
-            return "❌ Nenhum vídeo fornecido."
+        cap.release()
         
         if not frames:
-            return "❌ Não foi possível extrair frames do vídeo."
+            return None, "Não foi possível extrair frames"
         
-        # Tenta análise com Gemini primeiro
-        resultado = None
-        if USE_GEMINI and GOOGLE_API_KEY:
-            try:
-                resultado = analisar_com_gemini(frames, modulo, descricao_cliente)
-            except Exception as e:
-                print(f"Erro Gemini: {e}")
+        return frames, None
         
-        # Fallback para OpenAI
-        if not resultado and OPENAI_API_KEY:
-            try:
-                resultado = analisar_com_openai(frames, modulo, descricao_cliente)
-            except Exception as e:
-                print(f"Erro OpenAI: {e}")
-        
-        if not resultado:
-            return "❌ Não foi possível analisar o vídeo. Tente novamente ou descreva o problema."
-        
-        # Busca solução na base de conhecimento
-        erro_id = resultado.get("erro_identificado", "desconhecido").lower()
-        modulo_base = modulo.split("_")[0].lower()
-        erros_modulo = ERROS_VISUAIS.get(modulo_base, {})
-        
-        # Procura o erro na base
-        solucao = None
-        for codigo, info in erros_modulo.items():
-            if codigo.lower() == erro_id or erro_id in codigo.lower():
-                solucao = info.get("solucao", "")
-                break
-        
-        # Monta resposta
-        confianca = resultado.get("confianca", "média")
-        sinais = resultado.get("sinais_detectados", [])
-        descricao = resultado.get("descricao", "")
-        nome_erro = resultado.get("nome_erro", erro_id.upper())
-        
-        resposta = f"""🔍 **ANÁLISE DO VÍDEO**
+    except ImportError:
+        return None, "OpenCV não instalado. Execute: pip install opencv-python"
+    except Exception as e:
+        return None, f"Erro ao processar vídeo: {str(e)}"
 
-{"✅" if confianca == "alta" else "⚠️"} Confiança: {confianca.upper()}
 
-**Erro Identificado:** {nome_erro}
-
-**Sinais Detectados:**
-{chr(10).join(f"• {s}" for s in sinais) if sinais else "• Análise visual realizada"}
-
-{descricao}
-
----
-
-{solucao if solucao else f"Não encontrei solução específica para esse erro. Por favor, ligue: (11) 5677-4699"}
-"""
+def extrair_frames_de_bytes(video_bytes, max_frames=MAX_FRAMES):
+    """Extrai frames de bytes de vídeo."""
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp:
+            tmp.write(video_bytes)
+            tmp_path = tmp.name
         
-        return resposta.replace("**", "")  # Remove markdown
+        frames, erro = extrair_frames_video(tmp_path, max_frames)
+        
+        os.unlink(tmp_path)
+        
+        return frames, erro
         
     except Exception as e:
-        return f"❌ Erro ao processar vídeo: {str(e)}\n\nPor favor, descreva o problema ou ligue: (11) 5677-4699"
+        return None, f"Erro ao processar vídeo: {str(e)}"
 
 
-# ============================ TESTE ============================
+def analisar_com_gemini(frames, modulo, descricao=""):
+    """Analisa frames usando Google Gemini."""
+    try:
+        import google.generativeai as genai
+        
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            return None, "GOOGLE_API_KEY não configurada"
+        
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        erros_modulo = ERROS_VISUAIS.get(modulo.split('_')[0], {})
+        erros_lista = "\n".join([f"- {k}: {v['nome']} (sinais: {', '.join(v['sinais'])})" 
+                                  for k, v in erros_modulo.items()])
+        
+        prompt = f"""Você é um técnico especialista em equipamentos Storopack.
+Analise estas imagens de um equipamento {modulo.upper()} e identifique possíveis erros.
+
+Erros conhecidos para este equipamento:
+{erros_lista}
+
+{f'Descrição do cliente: {descricao}' if descricao else ''}
+
+Responda em JSON:
+{{
+    "erro_identificado": "codigo_do_erro ou null",
+    "nome_erro": "nome do erro",
+    "confianca": "alta/media/baixa",
+    "sinais_detectados": ["sinal1", "sinal2"],
+    "descricao": "breve descrição do que foi visto"
+}}
+
+Se não conseguir identificar um erro específico, retorne erro_identificado como null."""
+
+        parts = [prompt]
+        for frame_b64 in frames[:5]:
+            parts.append({
+                "mime_type": "image/jpeg",
+                "data": frame_b64
+            })
+        
+        response = model.generate_content(parts)
+        texto = response.text
+        
+        try:
+            texto = texto.replace("```json", "").replace("```", "").strip()
+            resultado = json.loads(texto)
+            return resultado, None
+        except:
+            return {"erro_identificado": None, "descricao": texto}, None
+            
+    except ImportError:
+        return None, "google-generativeai não instalado"
+    except Exception as e:
+        return None, f"Erro no Gemini: {str(e)}"
+
+
+def analisar_com_openai(frames, modulo, descricao=""):
+    """Analisa frames usando OpenAI GPT-4o Vision."""
+    try:
+        from openai import OpenAI
+        
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return None, "OPENAI_API_KEY não configurada"
+        
+        client = OpenAI(api_key=api_key)
+        
+        erros_modulo = ERROS_VISUAIS.get(modulo.split('_')[0], {})
+        erros_lista = "\n".join([f"- {k}: {v['nome']} (sinais: {', '.join(v['sinais'])})" 
+                                  for k, v in erros_modulo.items()])
+        
+        prompt = f"""Você é um técnico especialista em equipamentos Storopack.
+Analise estas imagens de um equipamento {modulo.upper()} e identifique possíveis erros.
+
+Erros conhecidos:
+{erros_lista}
+
+{f'Descrição do cliente: {descricao}' if descricao else ''}
+
+Responda APENAS em JSON:
+{{
+    "erro_identificado": "codigo_do_erro ou null",
+    "nome_erro": "nome do erro",
+    "confianca": "alta/media/baixa",
+    "sinais_detectados": ["sinal1", "sinal2"],
+    "descricao": "breve descrição"
+}}"""
+
+        content = [{"type": "text", "text": prompt}]
+        
+        for frame_b64 in frames[:4]:
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{frame_b64}",
+                    "detail": "low"
+                }
+            })
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": content}],
+            max_tokens=500
+        )
+        
+        texto = response.choices[0].message.content
+        
+        try:
+            texto = texto.replace("```json", "").replace("```", "").strip()
+            resultado = json.loads(texto)
+            return resultado, None
+        except:
+            return {"erro_identificado": None, "descricao": texto}, None
+            
+    except ImportError:
+        return None, "openai não instalado"
+    except Exception as e:
+        return None, f"Erro no OpenAI: {str(e)}"
+
+
+def formatar_resposta(resultado, modulo):
+    """Formata a resposta da análise para exibição."""
+    
+    if not resultado:
+        return "❌ Não foi possível analisar o vídeo.\n\nDescreva o problema por texto ou ligue: (11) 5677-4699"
+    
+    erro_id = resultado.get("erro_identificado")
+    confianca = resultado.get("confianca", "baixa").upper()
+    sinais = resultado.get("sinais_detectados", [])
+    descricao = resultado.get("descricao", "")
+    
+    modulo_base = modulo.split('_')[0]
+    erros_modulo = ERROS_VISUAIS.get(modulo_base, {})
+    
+    resposta = "🔍 ANÁLISE DO VÍDEO\n\n"
+    resposta += f"✅ Confiança: {confianca}\n\n"
+    
+    if erro_id and erro_id in erros_modulo:
+        erro_info = erros_modulo[erro_id]
+        resposta += f"❌ Erro Identificado: {erro_info['nome']}\n\n"
+        
+        if sinais:
+            resposta += "Sinais Detectados:\n"
+            for sinal in sinais:
+                resposta += f"• {sinal}\n"
+            resposta += "\n"
+        
+        resposta += "---\n\n"
+        resposta += f"🔧 SOLUÇÃO:\n\n{erro_info['solucao']}\n\n"
+        
+        if erro_info.get('video'):
+            resposta += f"📹 Vídeo de apoio:\n{erro_info['video']}\n\n"
+    else:
+        resposta += f"Observação: {descricao}\n\n"
+        resposta += "Não foi possível identificar um erro específico.\n"
+        resposta += "Por favor, descreva o problema com mais detalhes.\n\n"
+    
+    resposta += "Se precisar de ajuda: (11) 5677-4699"
+    
+    return resposta
+
+
+def analisar_video_erro(video_bytes=None, video_path=None, modulo="airplus", descricao_cliente=""):
+    """
+    Função principal para analisar vídeo de erro.
+    """
+    
+    if video_bytes:
+        frames, erro = extrair_frames_de_bytes(video_bytes)
+    elif video_path:
+        frames, erro = extrair_frames_video(video_path)
+    else:
+        return "❌ Nenhum vídeo fornecido."
+    
+    if erro:
+        return f"❌ {erro}\n\nDescreva o problema por texto ou ligue: (11) 5677-4699"
+    
+    if not frames:
+        return "❌ Não foi possível extrair frames do vídeo.\n\nTente enviar outro vídeo ou descreva o problema."
+    
+    # Tentar Gemini primeiro
+    resultado, erro_gemini = analisar_com_gemini(frames, modulo, descricao_cliente)
+    
+    # Se falhar, tentar OpenAI
+    if not resultado or erro_gemini:
+        resultado, erro_openai = analisar_com_openai(frames, modulo, descricao_cliente)
+        
+        if not resultado:
+            return f"❌ Erro na análise: {erro_openai or erro_gemini}\n\nDescreva o problema por texto ou ligue: (11) 5677-4699"
+    
+    return formatar_resposta(resultado, modulo)
+
 
 if __name__ == "__main__":
-    # Teste com um vídeo local
-    # resultado = analisar_video_erro(video_path="teste.mp4", modulo="airplus")
-    # print(resultado)
-    
-    print("Módulo de análise de vídeo carregado!")
-    print(f"Gemini configurado: {'Sim' if GOOGLE_API_KEY else 'Não'}")
-    print(f"OpenAI configurado: {'Sim' if OPENAI_API_KEY else 'Não'}")
+    print("Video Analyzer para Storopack")
+    print("Módulos:", list(ERROS_VISUAIS.keys()))
