@@ -1,4 +1,6 @@
 flask
+openai
 python-dotenv
-openai>=1.54.0
-gunicorn
+google-generativeai
+opencv-python-headless
+pillow

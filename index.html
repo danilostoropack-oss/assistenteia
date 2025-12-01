@@ -514,13 +514,24 @@ function analisarVideo() {
         method: 'POST',
         body: formData
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) { 
+        if (!r.ok) {
+            throw new Error('Erro no servidor: ' + r.status);
+        }
+        return r.json(); 
+    })
     .then(function(data) {
-        addMsg(data.resposta || 'Erro ao analisar vídeo.');
+        console.log('Resposta:', data);
+        if (data && data.resposta) {
+            addMsg(data.resposta);
+        } else {
+            addMsg('Resposta inválida do servidor. Tente novamente.');
+        }
         removerVideo();
     })
     .catch(function(err) {
-        addMsg('Erro de conexão. Tente novamente ou descreva o problema por texto.');
+        console.error('Erro:', err);
+        addMsg('Erro ao analisar vídeo. Descreva o problema por texto ou ligue: (11) 5677-4699');
         removerVideo();
     })
     .finally(function() {
