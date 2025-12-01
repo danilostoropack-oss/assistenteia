@@ -101,7 +101,7 @@ def analisar_com_gemini_video(video_bytes, modulo, descricao=""):
         genai.configure(api_key=api_key)
         
         # Usar modelo que suporta vídeo
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         erros_modulo = ERROS_VISUAIS.get(modulo.split('_')[0], {})
         erros_lista = "\n".join([f"- {k}: {v['nome']} (sinais: {', '.join(v['sinais'])})" 
