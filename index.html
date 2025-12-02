@@ -214,6 +214,7 @@
             max-height: 150px;
             border-radius: 8px;
             background: #000;
+            cursor: pointer;
         }
         .btn-analyze {
             width: 100%;
@@ -256,10 +257,52 @@
             .input-row { flex-wrap: wrap; }
             .btn { width: 100%; margin-top: 5px; }
         }
+
+        /* === MODAL DE VÍDEO === */
+        .modal-video {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            width: 90%;
+            max-width: 900px;
+            background: #000;
+            padding: 15px;
+            border-radius: 12px;
+            position: relative;
+        }
+        .modal-content video {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .close-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ef4444;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .close-btn:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+
+
         <div class="header">
             <div class="header-left">
                 <img src="https://www.storopack.com.br/fileadmin/_processed_/4/9/csm_Storopack_Imagefilm_Thumbnail_118bf988a8.jpg" class="logo" alt="Storopack">
@@ -294,7 +337,7 @@
                         <span>📹 Vídeo selecionado</span>
                         <button class="btn-remove" id="btnRemoveVideo">✕</button>
                     </div>
-                    <video id="videoPlayer" controls></video>
+                    <video id="videoPlayer" controls onclick="abrirModalVideo()"></video>
                     <button class="btn btn-analyze" id="btnAnalyze">🔍 Analisar Vídeo com IA</button>
                 </div>
 
@@ -319,6 +362,14 @@
         <div class="footer">© Storopack - Assistente Técnico (beta)</div>
     </div>
 
+<!-- MODAL DE VIDEO -->
+<div id="modalVideo" class="modal-video">
+    <div class="modal-content">
+        <span id="closeModal" class="close-btn">✕</span>
+        <video id="modalVideoPlayer" controls autoplay></video>
+    </div>
+</div>
+
 <script>
 var moduloAtivo = null;
 var submoduloAtivo = null;
@@ -339,6 +390,30 @@ var hint = document.getElementById('hint');
 var inputArea = document.getElementById('inputArea');
 
 var videoFile = null;
+
+/* ==== MODAL DE VIDEO ==== */
+var modalVideo = document.getElementById("modalVideo");
+var modalVideoPlayer = document.getElementById("modalVideoPlayer");
+var closeModal = document.getElementById("closeModal");
+
+function abrirModalVideo() {
+    if (!videoFile) return;
+    modalVideoPlayer.src = URL.createObjectURL(videoFile);
+    modalVideo.style.display = "flex";
+}
+
+function fecharModalVideo() {
+    modalVideo.style.display = "none";
+    modalVideoPlayer.pause();
+    modalVideoPlayer.src = "";
+}
+
+closeModal.addEventListener("click", fecharModalVideo);
+modalVideo.addEventListener("click", function(e) {
+    if (e.target === modalVideo) fecharModalVideo();
+});
+
+/* ==== SISTEMA ==== */
 
 var modulos = {
     airplus: {
@@ -515,22 +590,19 @@ function analisarVideo() {
         body: formData
     })
     .then(function(r) { 
-        if (!r.ok) {
-            throw new Error('Erro no servidor: ' + r.status);
-        }
+        if (!r.ok) throw new Error('Erro no servidor: ' + r.status);
         return r.json(); 
     })
     .then(function(data) {
-        console.log('Resposta:', data);
         if (data && data.resposta) {
             addMsg(data.resposta);
         } else {
             addMsg('Resposta inválida do servidor. Tente novamente.');
         }
         removerVideo();
+        fecharModalVideo();
     })
     .catch(function(err) {
-        console.error('Erro:', err);
         addMsg('Erro ao analisar vídeo. Descreva o problema por texto ou ligue: (11) 5677-4699');
         removerVideo();
     })
@@ -544,6 +616,7 @@ function voltar() {
     moduloAtivo = null;
     submoduloAtivo = null;
     removerVideo();
+    fecharModalVideo();
     
     badge.className = 'badge';
     hint.textContent = 'Selecione o equipamento sobre o qual deseja suporte:';
@@ -589,7 +662,6 @@ function enviar() {
     });
 }
 
-// Event listeners
 btnSend.addEventListener('click', enviar);
 btnVoltar.addEventListener('click', voltar);
 btnVideo.addEventListener('click', selecionarVideo);
